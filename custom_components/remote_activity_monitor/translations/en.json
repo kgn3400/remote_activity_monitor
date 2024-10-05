@@ -1,0 +1,100 @@
+{
+  "title": "Remote activity monitor",
+  "entity_component": {
+    "_": {
+      "name": "Remote activity monitor"
+    }
+  },
+  "config": {
+    "abort": {
+      "already_configured": "Device is already configured"
+    },
+    "error": {
+      "missing_selection": "No entities selected",
+      "api_problem": "Bad response from server",
+      "cannot_connect": "Failed to connect to server",
+      "invalid_auth": "Invalid credentials",
+      "no_monitors": "No active monitors found",
+      "unknown": "An unknown error occurred",
+      "missing_endpoint": "Install Remote activity monitor integration on the remote Home assistant first"
+    },
+    "step": {
+      "user": {
+        "title": "Remote activity monitor",
+        "description": "The Remote activity monitor allows you to monitor the status of chosen binary sensors on a remote Home Assistant devices.",
+        "menu_options": {
+          "main": "Add main acivity monitor integration",
+          "remote": "Add remote acivity monitor integration"
+        }
+      },
+      "main": {
+        "title": "Connection details",
+        "data": {
+          "name": "Main activity monitor name",
+          "host": "Remote host",
+          "port": "Port",
+          "access_token": "Long-lived access token",
+          "secure": "Secure",
+          "verify_ssl": "Verify SSL"
+        }
+      },
+      "config_main_options": {
+        "title": "Main activity monitor options",
+        "data": {
+          "monitor_entity": "Entity on remote host to monitor",
+          "duration_wait_update": "Duration before state is marked as changed",
+          "monitor_state_changed_type": "Monitor state changed"
+        }
+      },
+      "remote": {
+        "title": "Remote activity monitor",
+        "data": {
+          "name": "Remote activity monitor name",
+          "entity_ids": "Entities this binary sensor tracks"
+        }
+      }
+    }
+  },
+  "options": {
+    "abort": {
+      "already_configured": "Device is already configured"
+    },
+    "error": {
+      "missing_selection": "No entities selected",
+      "unknown": "Unexpected error"
+    },
+    "step": {
+      "main": {
+        "data": {
+          "monitor_entity": "Entity on remote host to monitor",
+          "duration_wait": "Duration before state is marked as changed",
+          "monitor_state_changed": "Monitor state changed"
+        }
+      },
+      "remote": {
+        "data": {
+          "entity_ids": "Entities this binary sensor tracks"
+        }
+      }
+    }
+  },
+  "selector": {
+    "state_changed_type": {
+      "options": {
+        "both": "Both",
+        "on": "On",
+        "off": "Off"
+      }
+    }
+  },
+  "issues": {
+    "remote_missing_entity": {
+      "description": "It looks like either entity `{entity}` has been deleted or renamed, which are used in Remote activity monitor integration `{integration}`. \n\n Please fix this problem.",
+      "title": "Remote activity monitor: Entity deleted or renamed"
+    },
+    "main_missing_entity": {
+      "description": "It looks like either entity `{entity}` has been deleted or renamed, which are used in Main activity monitor integration `{integration}`. \n\n Please fix this problem.",
+      "title": "Main activity monitor: Entity deleted or renamed"
+    }
+  }
+}

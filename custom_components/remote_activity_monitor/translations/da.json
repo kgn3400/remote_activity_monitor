@@ -1,0 +1,100 @@
+{
+    "title": "Fjernovervågning af aktivitet",
+    "entity_component": {
+        "_": {
+            "name": "Fjernovervågning af aktivitet"
+        }
+    },
+    "config": {
+        "abort": {
+            "already_configured": "Enheden er allerede konfigureret"
+        },
+        "error": {
+            "missing_selection": "Ingen enheder valgt",
+            "api_problem": "Fejl ved serverrespons",
+            "cannot_connect": "Kunne ikke oprette forbindelse til serveren",
+            "invalid_auth": "Ugyldige legitimationsoplysninger",
+            "no_monitors": "Ingen aktive monitorer fundet",
+            "unknown": "En ukendt fejl opstod",
+            "missing_endpoint": "Du skal installere integrationen til Fjernovervågning af aktivitet på den eksterne vært først"
+        },
+        "step": {
+            "user": {
+                "title": "Fjernovervågning af aktivitet",
+                "description": "Fjernovervågning af aktivitet giver dig mulighed for at overvåge status for valgte binære sensorer på eksterne Home Assistant-enheder.",
+                "menu_options": {
+                    "main": "Tilføj Fjernovervågning af aktivitet hovedintegration",
+                    "remote": "Tilføj Fjernovervågning af aktivitet fjernintegration"
+                }
+            },
+            "main": {
+                "title": "Forbindelsesdetaljer",
+                "data": {
+                    "name": "Navn på hovedovervågning af aktivitet",
+                    "host": "Fjernvært",
+                    "port": "Port",
+                    "access_token": "Langlivede adgangstoken",
+                    "secure": "Sikker",
+                    "verify_ssl": "Bekræft SSL"
+                }
+            },
+            "config_main_options": {
+                "title": "Indstillinger for hovedovervågning af aktivitet",
+                "data": {
+                    "monitor_entity": "Enhed på fjernværten til overvågning",
+                    "duration_wait_update": "Varighed før tilstand markeres som ændret",
+                    "monitor_state_changed_type": "Overvågning af tilstandsændring"
+                }
+            },
+            "remote": {
+                "title": "Integration til fjernovervågning af aktivitet",
+                "data": {
+                    "name": "Navn på fjernovervågning af aktivitet",
+                    "entity_ids": "Enheder denne binære sensor sporer"
+                }
+            }
+        }
+    },
+    "options": {
+        "abort": {
+            "already_configured": "Enheden er allerede konfigureret"
+        },
+        "error": {
+            "missing_selection": "Ingen enheder valgt",
+            "unknown": "Uventet fejl"
+        },
+        "step": {
+            "main": {
+                "data": {
+                    "monitor_entity": "Enhed på fjernværten til overvågning",
+                    "duration_wait": "Varighed før tilstand markeres som ændret",
+                    "monitor_state_changed": "Overvågning af tilstandsændring"
+                }
+            },
+            "remote": {
+                "data": {
+                    "entity_ids": "Enheder denne binære sensor sporer"
+                }
+            }
+        }
+    },
+    "selector": {
+        "state_changed_type": {
+            "options": {
+                "both": "Begge",
+                "on": "Tændt",
+                "off": "Slukket"
+            }
+        }
+    },
+    "issues": {
+        "remote_missing_entity": {
+            "description": "Det ser ud til, at enheden `{entity}` enten er blevet slettet eller omdøbt, hvilket bruges i integrationen til fjernovervågning af aktivitet `{integration}`. \n\n Venligst ret denne fejl.",
+            "title": "Fjernovervågning af aktivitet: Enhed slettet eller omdøbt"
+        },
+        "main_missing_entity": {
+            "description": "Det ser ud til, at enheden `{entity}` enten er blevet slettet eller omdøbt, hvilket bruges i hovedintegrationen til aktivitetsovervågning `{integration}`. \n\n Venligst ret denne fejl.",
+            "title": "Hovedaktivit monitor: Enhed slettet eller omdøbt"
+        }
+    }
+}
