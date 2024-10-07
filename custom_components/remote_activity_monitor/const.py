@@ -35,8 +35,17 @@ STATE_DISCONNECTED = "disconnected"
 STATE_BOTH = "both"
 
 DEFAULT_MAX_MSG_SIZE = 16 * 1024 * 1024
+DEFAULT_UPDATE_INTERVAL = 60
 HEARTBEAT_INTERVAL = 20
 HEARTBEAT_TIMEOUT = 5
+
+ATTR_MONITOR_ACTIVITY_ENTITY_ID = "monitor_activity_entity_id"
+ATTR_MONITOR_ACTIVITY_FRIENDLY_NAME = "monitor_activity_friendly_name"
+ATTR_MONITOR_ACTIVITY_LAST_UPDATED = "monitor_activity_last_updated"
+ATTR_REMOTE_ACTIVITY_FRIENDLY_NAME = "remote_activity_friendly_name"
+ATTR_REMOTE_ACTIVITY_ENTITY_ID = "remote_activity_entity_id"
+ATTR_REMOTE_ACTIVITY_LAST_UPDATED = "remote_activity_last_updated"
+ATTR_MAIN_ACTIVITY_LAST_UPDATED = "main_activity_last_updated"
 
 
 class ComponentType(StrEnum):
