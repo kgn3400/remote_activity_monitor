@@ -22,7 +22,7 @@ CONF_DURATION_WAIT_UPDATE = "duration_wait_update"
 CONF_MONITOR_STATE_CHANGED_TYPE = "monitor_state_changed_type"
 
 CONF_ENTITY_IDS = "entity_ids"
-
+CONF_ALL_ENTITIES_ON = "all_entities_on"
 SERVICE_GET_REMOTE_ENTITIES = "get_remote_entities"
 STATE_INIT = "initializing"
 STATE_CONNECTING = "connecting"

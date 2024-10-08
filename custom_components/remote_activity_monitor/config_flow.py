@@ -27,6 +27,7 @@ from homeassistant.helpers.schema_config_entry_flow import (
     SchemaFlowMenuStep,
 )
 from homeassistant.helpers.selector import (
+    BooleanSelector,
     DurationSelector,
     DurationSelectorConfig,
     EntitySelector,
@@ -38,6 +39,7 @@ from homeassistant.helpers.selector import (
 )
 
 from .const import (
+    CONF_ALL_ENTITIES_ON,
     CONF_COMPONENT_TYPE,
     CONF_DURATION_WAIT_UPDATE,
     CONF_ENTITY_IDS,
@@ -102,6 +104,10 @@ async def _create_form(
     }
 
     CONFIG_REMOTE_OPTIONS_ENTITIES = {
+        vol.Required(
+            CONF_ALL_ENTITIES_ON,
+            default=False,
+        ): BooleanSelector(),
         vol.Required(
             CONF_ENTITY_IDS,
             default=handler.options.get(CONF_ENTITY_IDS, []),

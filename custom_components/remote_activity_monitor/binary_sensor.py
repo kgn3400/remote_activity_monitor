@@ -40,6 +40,7 @@ from .const import (
     ATTR_REMOTE_ACTIVITY_ENTITY_ID,
     ATTR_REMOTE_ACTIVITY_FRIENDLY_NAME,
     ATTR_REMOTE_ACTIVITY_LAST_UPDATED,
+    CONF_ALL_ENTITIES_ON,
     CONF_COMPONENT_TYPE,
     CONF_DURATION_WAIT_UPDATE,
     CONF_ENTITY_IDS,
@@ -80,7 +81,7 @@ async def async_setup_entry(
 class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntity):
     """Sensor class for Remote activity monitor."""
 
-    entity_list: list[RemoteAcitvityMonitorBinarySensor] = []
+    class_entity_list: list[RemoteAcitvityMonitorBinarySensor] = []
 
     # ------------------------------------------------------
     def __init__(
@@ -101,9 +102,9 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
 
         super().__init__(self.coordinator, entry)
 
-        self.translation_key = TRANSLATION_KEY
+        self.translation_key: str = TRANSLATION_KEY
 
-        self.remote_state = False
+        self.remote_state: bool = False
         self.remote_friendly_name: str = ""
         self.remote_entity_id: str = ""
         self.remote_last_updated: datetime = dt_util.now()
@@ -126,7 +127,7 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
 
         tmp_remotes: list[dict[str, str]] = []
 
-        for item in self.entity_list:
+        for item in RemoteAcitvityMonitorBinarySensor.class_entity_list:
             state: State | None = self.hass.states.get(item.entity_id)
 
             if state:
@@ -144,7 +145,7 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
     # ------------------------------------------------------
     async def async_will_remove_from_hass(self) -> None:
         """When removed from hass."""
-        RemoteAcitvityMonitorBinarySensor.entity_list.remove(self)
+        RemoteAcitvityMonitorBinarySensor.class_entity_list.remove(self)
 
     # ------------------------------------------------------
     @callback
@@ -154,14 +155,63 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
     ) -> None:
         """Handle state changes on the observed device."""
 
-        if (tmp_state := event.data["new_state"]) is None:
+        # if (tmp_state := event.data["new_state"]) is None:
+        #     return
+        if event.data["new_state"] is None:
             return
 
-        self.remote_state = tmp_state.state == STATE_ON
-        self.remote_friendly_name = tmp_state.name
-        self.remote_entity_id = tmp_state.entity_id
-        self.remote_last_updated = dt_util.now()
+        # self.remote_state = tmp_state.state == STATE_ON
+        await self.check_entities_state()
+        # self.remote_friendly_name = tmp_state.name
+        # self.remote_entity_id = tmp_state.entity_id
+        # self.remote_last_updated = dt_util.now()
         await self.coordinator.async_refresh()
+
+    # ------------------------------------------------------
+    async def check_entities_state(self) -> None:
+        """Check entities state."""
+
+        tmp_last_updated_timestamp: float = 0.0
+        tmp_last_updated: datetime = dt_util.now()
+        tmp_name: str = ""
+        tmp_entity_id: str = ""
+
+        self.remote_state = self.entry.options.get(CONF_ALL_ENTITIES_ON, False) is True
+
+        for entity in self.monitor_activity_entities:
+            state: State | None = self.hass.states.get(entity)
+
+            if state is not None:
+                if state.last_updated_timestamp > tmp_last_updated_timestamp:
+                    tmp_last_updated_timestamp = state.last_updated_timestamp
+                    tmp_last_updated = state.last_updated
+                    tmp_name = state.name
+                    tmp_entity_id = state.entity_id
+
+                if (
+                    self.entry.options.get(CONF_ALL_ENTITIES_ON, False) is True
+                    and state.state == STATE_OFF
+                ):
+                    self.remote_state = False
+                elif (
+                    self.entry.options.get(CONF_ALL_ENTITIES_ON, False) is False
+                    and state.state == STATE_ON
+                ):
+                    self.remote_state = True
+
+        if tmp_last_updated_timestamp > 0.0:
+            self.remote_last_updated = tmp_last_updated
+            self.remote_friendly_name = tmp_name
+            self.remote_entity_id = tmp_entity_id
+
+    # ------------------------------------------------------
+    async def hass_started(self, _event: Event) -> None:
+        """Hass started."""
+
+        await self.check_entities_state()
+
+        if await self.async_verify_entity_exist():
+            pass
 
     # ------------------------------------------------------
     async def async_added_to_hass(self) -> None:
@@ -169,7 +219,7 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
 
         await self.coordinator.async_config_entry_first_refresh()
 
-        RemoteAcitvityMonitorBinarySensor.entity_list.append(self)
+        RemoteAcitvityMonitorBinarySensor.class_entity_list.append(self)
 
         self.async_on_remove(
             async_track_state_change_event(
@@ -207,13 +257,6 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
     # ------------------------------------------------------
     async def async_refresh(self) -> None:
         """Refresh."""
-
-    # ------------------------------------------------------
-    async def hass_started(self, _event: Event) -> None:
-        """Hass started."""
-
-        if await self.async_verify_entity_exist():
-            pass
 
     # ------------------------------------------------------------------
     async def async_create_issue_entity(

@@ -50,7 +50,11 @@
         "title": "Remote activity monitor",
         "data": {
           "name": "Remote activity monitor name",
+          "all_entities_on": "All entities on",
           "entity_ids": "Entities this binary sensor tracks"
+        },
+        "data_description": {
+          "all_entities_on": "If enabled, state is on only on if all entites are on. If disabled, state is on if any entities is on."
         }
       }
     }
@@ -73,7 +77,11 @@
       },
       "remote": {
         "data": {
+          "all_entities_on": "All entities on",
           "entity_ids": "Entities this binary sensor tracks"
+        },
+        "data_description": {
+          "all_entities_on": "If enabled, state is on only on if all entites are on. If disabled, state is on if any entities is on."
         }
       }
     }
