@@ -426,15 +426,16 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         return remote_state
 
     # ------------------------------------------------------
-    async def _check_set_state(self, is_state: bool | None) -> None:
+    async def _check_set_state(self, is_state: bool | None = None) -> None:
         """Check and set state."""
 
         if self.remote_state_on is is_state or is_state is None:
             if self.duration_wait_update.total_seconds() == 0 or (
                 self.duration_wait_update.total_seconds() > 0
                 and dt_util.now()
-                > (self.remote_last_updated + self.duration_wait_update)
+                >= (self.remote_last_updated + self.duration_wait_update)
             ):
+                LOGGER.debug("Settting main state")
                 self.main_state_on = self._map_remote_state_for_changed_type(
                     self.remote_state_on
                 )
@@ -443,9 +444,21 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
                     seconds=DEFAULT_UPDATE_INTERVAL
                 )
             else:  # The state is correct, but the wait duration is not yet expired
-                self.coordinator.update_interval = self.duration_wait_update
+                LOGGER.debug("The state is correct, set wait duration")
+
+                tmp_wait: timedelta = (
+                    self.duration_wait_update + timedelta(seconds=1)
+                ) - (dt_util.now() - self.remote_last_updated)
+
+                if tmp_wait.total_seconds() > 0:
+                    self.coordinator.update_interval = tmp_wait
+                else:  # To low, use default
+                    self.coordinator.update_interval = timedelta(
+                        seconds=DEFAULT_UPDATE_INTERVAL
+                    )
 
         else:  # The state is not correct
+            LOGGER.debug("The state is not correct, reset wait duration to default")
             self.coordinator.update_interval = timedelta(
                 seconds=DEFAULT_UPDATE_INTERVAL
             )
@@ -461,6 +474,7 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         if self.main_state_on == self._map_remote_state_for_changed_type(
             self.remote_state_on
         ):  # No need to update
+            LOGGER.debug("No need to update, set wait duration to default")
             self.coordinator.update_interval = timedelta(
                 seconds=DEFAULT_UPDATE_INTERVAL
             )
@@ -543,14 +557,27 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
                 pass
             case "event":
                 to_state: dict = message["event"]["variables"]["trigger"]["to_state"]
-                self.remote_state_on = to_state["state"] == "on"
+
+                tmp_remote_state_on: bool = to_state["state"] == "on"
+
+                # Wait duration is not yet expired for the last event, should we reset the state
+                if (
+                    tmp_remote_state_on != self.remote_state_on
+                    and self.main_state_on
+                    != self._map_remote_state_for_changed_type(self.remote_state_on)
+                ):
+                    self.main_state_on = self._map_remote_state_for_changed_type(
+                        self.remote_state_on
+                    )
+
+                self.remote_state_on = tmp_remote_state_on
                 self.remote_entity_id = to_state["attributes"][
                     ATTR_MONITOR_ACTIVITY_ENTITY_ID
                 ]
                 self.remote_friendly_name = to_state["attributes"][
                     ATTR_MONITOR_ACTIVITY_FRIENDLY_NAME
                 ]
-                self.remote_last_updated = self.main_last_updated = dt_util.as_local(
+                self.remote_last_updated = dt_util.as_local(
                     datetime.fromisoformat(
                         to_state["attributes"][ATTR_MONITOR_ACTIVITY_LAST_UPDATED]
                     )
