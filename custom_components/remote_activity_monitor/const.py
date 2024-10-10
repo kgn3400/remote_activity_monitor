@@ -45,7 +45,9 @@ ATTR_MONITOR_ACTIVITY_LAST_UPDATED = "monitor_activity_last_updated"
 ATTR_REMOTE_ACTIVITY_FRIENDLY_NAME = "remote_activity_friendly_name"
 ATTR_REMOTE_ACTIVITY_ENTITY_ID = "remote_activity_entity_id"
 ATTR_REMOTE_ACTIVITY_LAST_UPDATED = "remote_activity_last_updated"
-ATTR_MAIN_ACTIVITY_LAST_UPDATED = "main_activity_last_updated"
+ATTR_REMOTE_ACTIVITY_LAST_UPDATED_DURATION = "remote_activity_last_updated_duration"
+ATTR_MAIN_MONITOR_LAST_UPDATED = "main_monitor_last_updated"
+ATTR_MAIN_MONITOR_WAIT_DURATION_LEFT = "main_monitor_wait_duration_left"
 
 
 class ComponentType(StrEnum):

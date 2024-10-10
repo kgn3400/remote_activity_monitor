@@ -1,4 +1,4 @@
-"""Support for Pin alert."""
+"""Support for Remote Activity Monitor."""
 
 from __future__ import annotations
 
@@ -33,13 +33,15 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
 from .const import (
-    ATTR_MAIN_ACTIVITY_LAST_UPDATED,
+    ATTR_MAIN_MONITOR_LAST_UPDATED,
+    ATTR_MAIN_MONITOR_WAIT_DURATION_LEFT,
     ATTR_MONITOR_ACTIVITY_ENTITY_ID,
     ATTR_MONITOR_ACTIVITY_FRIENDLY_NAME,
     ATTR_MONITOR_ACTIVITY_LAST_UPDATED,
     ATTR_REMOTE_ACTIVITY_ENTITY_ID,
     ATTR_REMOTE_ACTIVITY_FRIENDLY_NAME,
     ATTR_REMOTE_ACTIVITY_LAST_UPDATED,
+    ATTR_REMOTE_ACTIVITY_LAST_UPDATED_DURATION,
     CONF_ALL_ENTITIES_ON,
     CONF_COMPONENT_TYPE,
     CONF_DURATION_WAIT_UPDATE,
@@ -125,13 +127,13 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
     async def async_get_remote_entities(self, call: ServiceCall) -> ServiceResponse:
         """Get active remote entities."""
 
-        tmp_remotes: list[dict[str, str]] = []
+        remotes: list[dict[str, str]] = []
 
         for item in RemoteAcitvityMonitorBinarySensor.class_entity_list:
             state: State | None = self.hass.states.get(item.entity_id)
 
             if state:
-                tmp_remotes.append(
+                remotes.append(
                     {
                         "name": item.name,
                         "entity_id": item.entity_id,
@@ -140,7 +142,7 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
                     }
                 )
 
-        return {"remotes": tmp_remotes}
+        return {"remotes": remotes}
 
     # ------------------------------------------------------
     async def async_will_remove_from_hass(self) -> None:
@@ -155,26 +157,21 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
     ) -> None:
         """Handle state changes on the observed device."""
 
-        # if (tmp_state := event.data["new_state"]) is None:
-        #     return
         if event.data["new_state"] is None:
             return
 
-        # self.remote_state = tmp_state.state == STATE_ON
         await self.check_entities_state()
-        # self.remote_friendly_name = tmp_state.name
-        # self.remote_entity_id = tmp_state.entity_id
-        # self.remote_last_updated = dt_util.now()
+
         await self.coordinator.async_refresh()
 
     # ------------------------------------------------------
     async def check_entities_state(self) -> None:
         """Check entities state."""
 
-        tmp_last_updated_timestamp: float = 0.0
-        tmp_last_updated: datetime = dt_util.now()
-        tmp_name: str = ""
-        tmp_entity_id: str = ""
+        last_updated_timestamp: float = 0.0
+        last_updated: datetime = dt_util.now()
+        entity_name: str = ""
+        entity_id: str = ""
 
         self.remote_state = self.entry.options.get(CONF_ALL_ENTITIES_ON, False) is True
 
@@ -182,11 +179,11 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
             state: State | None = self.hass.states.get(entity)
 
             if state is not None:
-                if state.last_updated_timestamp > tmp_last_updated_timestamp:
-                    tmp_last_updated_timestamp = state.last_updated_timestamp
-                    tmp_last_updated = state.last_updated
-                    tmp_name = state.name
-                    tmp_entity_id = state.entity_id
+                if state.last_updated_timestamp > last_updated_timestamp:
+                    last_updated_timestamp = state.last_updated_timestamp
+                    last_updated = state.last_updated
+                    entity_name = state.name
+                    entity_id = state.entity_id
 
                 if (
                     self.entry.options.get(CONF_ALL_ENTITIES_ON, False) is True
@@ -199,10 +196,10 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
                 ):
                     self.remote_state = True
 
-        if tmp_last_updated_timestamp > 0.0:
-            self.remote_last_updated = tmp_last_updated
-            self.remote_friendly_name = tmp_name
-            self.remote_entity_id = tmp_entity_id
+        if last_updated_timestamp > 0.0:
+            self.remote_last_updated = last_updated
+            self.remote_friendly_name = entity_name
+            self.remote_entity_id = entity_id
 
     # ------------------------------------------------------
     async def hass_started(self, _event: Event) -> None:
@@ -384,10 +381,8 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
 
         self.duration_wait_update: timedelta = timedelta()
 
-        if (
-            tmp_duration := entry.options.get(CONF_DURATION_WAIT_UPDATE, None)
-        ) is not None:
-            self.duration_wait_update = timedelta(**tmp_duration)
+        if (duration := entry.options.get(CONF_DURATION_WAIT_UPDATE, None)) is not None:
+            self.duration_wait_update = timedelta(**duration)
 
         self.monitor_state_changed_type: str = entry.options.get(
             CONF_MONITOR_STATE_CHANGED_TYPE, STATE_BOTH
@@ -415,7 +410,7 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         )
 
     # ------------------------------------------------------
-    def _map_remote_state_for_changed_type(self, remote_state: bool) -> bool:
+    def map_remote_state_for_changed_type(self, remote_state: bool) -> bool:
         """Map remote state for changed type."""
 
         if self.monitor_state_changed_type == STATE_ON:
@@ -426,7 +421,7 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         return remote_state
 
     # ------------------------------------------------------
-    async def _check_set_state(self, is_state: bool | None = None) -> None:
+    async def check_set_state(self, is_state: bool | None = None) -> None:
         """Check and set state."""
 
         if self.remote_state_on is is_state or is_state is None:
@@ -435,8 +430,8 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
                 and dt_util.now()
                 >= (self.remote_last_updated + self.duration_wait_update)
             ):
-                LOGGER.debug("Settting main state")
-                self.main_state_on = self._map_remote_state_for_changed_type(
+                LOGGER.debug("Setting main state")
+                self.main_state_on = self.map_remote_state_for_changed_type(
                     self.remote_state_on
                 )
                 self.main_last_updated = dt_util.now()
@@ -446,12 +441,12 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
             else:  # The state is correct, but the wait duration is not yet expired
                 LOGGER.debug("The state is correct, set wait duration")
 
-                tmp_wait: timedelta = (
+                wait_duration: timedelta = (
                     self.duration_wait_update + timedelta(seconds=1)
                 ) - (dt_util.now() - self.remote_last_updated)
 
-                if tmp_wait.total_seconds() > 0:
-                    self.coordinator.update_interval = tmp_wait
+                if wait_duration.total_seconds() > 0:
+                    self.coordinator.update_interval = wait_duration
                 else:  # To low, use default
                     self.coordinator.update_interval = timedelta(
                         seconds=DEFAULT_UPDATE_INTERVAL
@@ -462,7 +457,7 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
             self.coordinator.update_interval = timedelta(
                 seconds=DEFAULT_UPDATE_INTERVAL
             )
-            self.main_state_on = self._map_remote_state_for_changed_type(
+            self.main_state_on = self.map_remote_state_for_changed_type(
                 self.remote_state_on
             )
             self.main_last_updated = dt_util.now()
@@ -471,7 +466,7 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
     async def async_refresh(self) -> None:
         """Refresh."""
 
-        if self.main_state_on == self._map_remote_state_for_changed_type(
+        if self.main_state_on == self.map_remote_state_for_changed_type(
             self.remote_state_on
         ):  # No need to update
             LOGGER.debug("No need to update, set wait duration to default")
@@ -481,9 +476,9 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
             return
 
         if self.monitor_state_changed_type == STATE_BOTH:
-            await self._check_set_state()
+            await self.check_set_state()
         else:
-            await self._check_set_state(self.monitor_state_changed_type == STATE_ON)
+            await self.check_set_state(self.monitor_state_changed_type == STATE_ON)
 
     # ------------------------------------------------------
     async def async_will_remove_from_hass(self) -> None:
@@ -507,18 +502,16 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         """Hass started."""
 
         try:
-            tmp_remote_entyties: list = (
-                await RestApi().async_get_remote_activity_monitors(
-                    self.hass,
-                    self.entry.options.get(CONF_HOST),
-                    self.entry.options.get(CONF_PORT),
-                    self.entry.options.get(CONF_ACCESS_TOKEN),
-                    self.entry.options.get(CONF_SECURE),
-                    self.entry.options.get(CONF_VERIFY_SSL),
-                )
+            remote_entyties: list = await RestApi().async_get_remote_activity_monitors(
+                self.hass,
+                self.entry.options.get(CONF_HOST),
+                self.entry.options.get(CONF_PORT),
+                self.entry.options.get(CONF_ACCESS_TOKEN),
+                self.entry.options.get(CONF_SECURE),
+                self.entry.options.get(CONF_VERIFY_SSL),
             )
 
-            for remote_entity in tmp_remote_entyties:
+            for remote_entity in remote_entyties:
                 if remote_entity["entity_id"] == self.entry.options.get(
                     CONF_MONITOR_ENTITY
                 ):
@@ -558,19 +551,19 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
             case "event":
                 to_state: dict = message["event"]["variables"]["trigger"]["to_state"]
 
-                tmp_remote_state_on: bool = to_state["state"] == "on"
+                to_remote_state_on: bool = to_state["state"] == "on"
 
                 # Wait duration is not yet expired for the last event, should we reset the state
                 if (
-                    tmp_remote_state_on != self.remote_state_on
+                    to_remote_state_on != self.remote_state_on
                     and self.main_state_on
-                    != self._map_remote_state_for_changed_type(self.remote_state_on)
+                    != self.map_remote_state_for_changed_type(self.remote_state_on)
                 ):
-                    self.main_state_on = self._map_remote_state_for_changed_type(
+                    self.main_state_on = self.map_remote_state_for_changed_type(
                         self.remote_state_on
                     )
 
-                self.remote_state_on = tmp_remote_state_on
+                self.remote_state_on = to_remote_state_on
                 self.remote_entity_id = to_state["attributes"][
                     ATTR_MONITOR_ACTIVITY_ENTITY_ID
                 ]
@@ -660,12 +653,31 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
 
         """
 
-        return {
+        tmp_duration: timedelta = dt_util.now() - self.remote_last_updated
+        tmp_duration = tmp_duration - timedelta(microseconds=tmp_duration.microseconds)
+
+        attr: dict = {
             ATTR_REMOTE_ACTIVITY_FRIENDLY_NAME: self.remote_friendly_name,
             ATTR_REMOTE_ACTIVITY_ENTITY_ID: self.remote_entity_id,
             ATTR_REMOTE_ACTIVITY_LAST_UPDATED: self.remote_last_updated,
-            ATTR_MAIN_ACTIVITY_LAST_UPDATED: self.main_last_updated,
+            ATTR_REMOTE_ACTIVITY_LAST_UPDATED_DURATION: str(tmp_duration),
+            ATTR_MAIN_MONITOR_LAST_UPDATED: self.main_last_updated,
         }
+
+        tmp_duration = (
+            self.duration_wait_update + self.remote_last_updated - dt_util.now()
+        )
+        tmp_duration = tmp_duration - timedelta(microseconds=tmp_duration.microseconds)
+
+        if (
+            tmp_duration.total_seconds() < 0
+            or self.duration_wait_update.total_seconds() == 0
+        ):
+            tmp_duration = timedelta()
+
+        attr[ATTR_MAIN_MONITOR_WAIT_DURATION_LEFT] = str(tmp_duration)
+
+        return attr
 
     # ------------------------------------------------------
     @property

@@ -23,8 +23,8 @@
         "title": "Remote activity monitor",
         "description": "The Remote activity monitor allows you to monitor the status of chosen binary sensors on a remote Home Assistant devices.",
         "menu_options": {
-          "main": "Add main acivity monitor integration",
-          "remote": "Add remote acivity monitor integration"
+          "main": "Add main activity monitor integration",
+          "remote": "Add remote activity monitor integration"
         }
       },
       "main": {
@@ -54,7 +54,7 @@
           "entity_ids": "Entities this binary sensor tracks"
         },
         "data_description": {
-          "all_entities_on": "If enabled, state is on only on if all entites are on. If disabled, state is on if any entities is on."
+          "all_entities_on": "If enabled, state is on only on if all entities are on. If disabled, state is on if any entities is on."
         }
       }
     }
@@ -81,7 +81,7 @@
           "entity_ids": "Entities this binary sensor tracks"
         },
         "data_description": {
-          "all_entities_on": "If enabled, state is on only on if all entites are on. If disabled, state is on if any entities is on."
+          "all_entities_on": "If enabled, state is on only on if all entities are on. If disabled, state is on if any entities is on."
         }
       }
     }
@@ -92,6 +92,41 @@
         "both": "Both",
         "on": "On",
         "off": "Off"
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "remote_activity_monitor": {
+        "state_attributes": {
+          "monitor_activity_entity_id": {
+            "name": "Monitor activity entity id"
+          },
+          "monitor_activity_friendly_name": {
+            "name": "Monitor activity friendly name"
+          },
+          "monitor_activity_last_updated": {
+            "name": "Monitor activity last updated"
+          },
+          "remote_activity_friendly_name": {
+            "name": "Remote activity friendly name"
+          },
+          "remote_activity_entity_id": {
+            "name": "Remote activity entity id"
+          },
+          "remote_activity_last_updated": {
+            "name": "Remote activity last updated"
+          },
+          "remote_activity_last_updated_duration": {
+            "name": "Remote activity last updated duration"
+          },
+          "main_monitor_last_updated": {
+            "name": "Main monitor last updated"
+          },
+          "main_monitor_wait_duration_left": {
+            "name": "Main monitor wait duration left"
+          }
+        }
       }
     }
   },

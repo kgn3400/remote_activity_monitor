@@ -1,108 +1,143 @@
 {
-    "title": "Fjernovervågning af aktivitet",
-    "entity_component": {
-        "_": {
-            "name": "Fjernovervågning af aktivitet"
-        }
-    },
-    "config": {
-        "abort": {
-            "already_configured": "Enheden er allerede konfigureret"
-        },
-        "error": {
-            "missing_selection": "Ingen enheder valgt",
-            "api_problem": "Fejl ved serverrespons",
-            "cannot_connect": "Kunne ikke oprette forbindelse til serveren",
-            "invalid_auth": "Ugyldige legitimationsoplysninger",
-            "no_monitors": "Ingen aktive monitorer fundet",
-            "unknown": "En ukendt fejl opstod",
-            "missing_endpoint": "Du skal installere integrationen til Fjernovervågning af aktivitet på den eksterne vært først"
-        },
-        "step": {
-            "user": {
-                "title": "Fjernovervågning af aktivitet",
-                "description": "Fjernovervågning af aktivitet giver dig mulighed for at overvåge status for valgte binære sensorer på eksterne Home Assistant-enheder.",
-                "menu_options": {
-                    "main": "Tilføj hovedintegration fjernovervågning af aktivitet",
-                    "remote": "Tilføj fjernintegration Fjernovervågning af aktivitet"
-                }
-            },
-            "main": {
-                "title": "Forbindelsesdetaljer",
-                "data": {
-                    "name": "Navn på hovedovervågning af aktivitet",
-                    "host": "Fjernvært",
-                    "port": "Port",
-                    "access_token": "Langlivede adgangstoken",
-                    "secure": "Sikker",
-                    "verify_ssl": "Bekræft SSL"
-                }
-            },
-            "config_main_options": {
-                "title": "Indstillinger for hovedovervågning af aktivitet",
-                "data": {
-                    "monitor_entity": "Enhed på fjernværten til overvågning",
-                    "duration_wait_update": "Varighed før tilstand markeres som ændret",
-                    "monitor_state_changed_type": "Overvågning af tilstandsændring"
-                }
-            },
-            "remote": {
-                "title": "Integration til fjernovervågning af aktivitet",
-                "data": {
-                    "name": "Navn på fjernovervågning af aktivitet",
-                    "all_entities_on": "Alle enheder til",
-                    "entity_ids": "Enheder denne binære sensor sporer"
-                },
-                "data_description": {
-                    "all_entities_on": "Hvis aktiveret, er tilstanden kun tændt, hvis alle enheder er tændt. Hvis deaktiveret, er tilstanden tændt, hvis en hvilken som helst enhed er tændt."
-                }
-            }
-        }
-    },
-    "options": {
-        "abort": {
-            "already_configured": "Enheden er allerede konfigureret"
-        },
-        "error": {
-            "missing_selection": "Ingen enheder valgt",
-            "unknown": "Uventet fejl"
-        },
-        "step": {
-            "main": {
-                "data": {
-                    "monitor_entity": "Enhed på fjernværten til overvågning",
-                    "duration_wait": "Varighed før tilstand markeres som ændret",
-                    "monitor_state_changed": "Overvågning af tilstandsændring"
-                }
-            },
-            "remote": {
-                "data": {
-                    "all_entities_on": "Alle enheder til",
-                    "entity_ids": "Enheder denne binære sensor sporer"
-                },
-                "data_description": {
-                    "all_entities_on": "Hvis aktiveret, er tilstanden kun tændt, hvis alle enheder er tændt. Hvis deaktiveret, er tilstanden tændt, hvis en hvilken som helst enhed er tændt."
-                }
-            }
-        }
-    },
-    "selector": {
-        "state_changed_type": {
-            "options": {
-                "both": "Begge",
-                "on": "Tændt",
-                "off": "Slukket"
-            }
-        }
-    },
-    "issues": {
-        "remote_missing_entity": {
-            "description": "Det ser ud til, at enheden `{entity}` enten er blevet slettet eller omdøbt, hvilket bruges i integrationen til fjernovervågning af aktivitet `{integration}`. \n\n Venligst ret denne fejl.",
-            "title": "Fjernovervågning af aktivitet: Enhed slettet eller omdøbt"
-        },
-        "main_missing_entity": {
-            "description": "Det ser ud til, at enheden `{entity}` enten er blevet slettet eller omdøbt, hvilket bruges i hovedintegrationen til aktivitetsovervågning `{integration}`. \n\n Venligst ret denne fejl.",
-            "title": "Hovedaktivit monitor: Enhed slettet eller omdøbt"
-        }
+  "title": "Fjernovervågning af aktivitet",
+  "entity_component": {
+    "_": {
+      "name": "Fjernovervågning af aktivitet"
     }
+  },
+  "config": {
+    "abort": {
+      "already_configured": "Enheden er allerede konfigureret"
+    },
+    "error": {
+      "missing_selection": "Ingen enheder valgt",
+      "api_problem": "Fejl ved serverrespons",
+      "cannot_connect": "Kunne ikke oprette forbindelse til serveren",
+      "invalid_auth": "Ugyldige legitimationsoplysninger",
+      "no_monitors": "Ingen aktive monitorer fundet",
+      "unknown": "En ukendt fejl opstod",
+      "missing_endpoint": "Du skal installere integrationen til Fjernovervågning af aktivitet på den eksterne vært først"
+    },
+    "step": {
+      "user": {
+        "title": "Fjernovervågning af aktivitet",
+        "description": "Fjernovervågning af aktivitet giver dig mulighed for at overvåge status for valgte binære sensorer på eksterne Home Assistant-enheder.",
+        "menu_options": {
+          "main": "Tilføj hovedintegration fjernovervågning af aktivitet",
+          "remote": "Tilføj fjernintegration Fjernovervågning af aktivitet"
+        }
+      },
+      "main": {
+        "title": "Forbindelsesdetaljer",
+        "data": {
+          "name": "Navn på hovedovervågning af aktivitet",
+          "host": "Fjernvært",
+          "port": "Port",
+          "access_token": "Langlivede adgangstoken",
+          "secure": "Sikker",
+          "verify_ssl": "Bekræft SSL"
+        }
+      },
+      "config_main_options": {
+        "title": "Indstillinger for hovedovervågning af aktivitet",
+        "data": {
+          "monitor_entity": "Enhed på fjernværten til overvågning",
+          "duration_wait_update": "Varighed før tilstand markeres som ændret",
+          "monitor_state_changed_type": "Overvågning af tilstandsændring"
+        }
+      },
+      "remote": {
+        "title": "Integration til fjernovervågning af aktivitet",
+        "data": {
+          "name": "Navn på fjernovervågning af aktivitet",
+          "all_entities_on": "Alle enheder til",
+          "entity_ids": "Enheder denne binære sensor sporer"
+        },
+        "data_description": {
+          "all_entities_on": "Hvis aktiveret, er tilstanden kun tændt, hvis alle enheder er tændt. Hvis deaktiveret, er tilstanden tændt, hvis en hvilken som helst enhed er tændt."
+        }
+      }
+    }
+  },
+  "options": {
+    "abort": {
+      "already_configured": "Enheden er allerede konfigureret"
+    },
+    "error": {
+      "missing_selection": "Ingen enheder valgt",
+      "unknown": "Uventet fejl"
+    },
+    "step": {
+      "main": {
+        "data": {
+          "monitor_entity": "Enhed på fjernværten til overvågning",
+          "duration_wait": "Varighed før tilstand markeres som ændret",
+          "monitor_state_changed": "Overvågning af tilstandsændring"
+        }
+      },
+      "remote": {
+        "data": {
+          "all_entities_on": "Alle enheder til",
+          "entity_ids": "Enheder denne binære sensor sporer"
+        },
+        "data_description": {
+          "all_entities_on": "Hvis aktiveret, er tilstanden kun tændt, hvis alle enheder er tændt. Hvis deaktiveret, er tilstanden tændt, hvis en hvilken som helst enhed er tændt."
+        }
+      }
+    }
+  },
+  "selector": {
+    "state_changed_type": {
+      "options": {
+        "both": "Begge",
+        "on": "Tændt",
+        "off": "Slukket"
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "remote_activity_monitor": {
+        "state_attributes": {
+          "monitor_activity_entity_id": {
+            "name": "Overvåget aktivitet enheds-id"
+          },
+          "monitor_activity_friendly_name": {
+            "name": "Overvåget aktivitet venligt navn"
+          },
+          "monitor_activity_last_updated": {
+            "name": "Overvåget aktivitet sidst opdateret"
+          },
+          "remote_activity_friendly_name": {
+            "name": "Fjernovervåget venligt navn"
+          },
+          "remote_activity_entity_id": {
+            "name": "Fjernovervåget enheds-id"
+          },
+          "remote_activity_last_updated": {
+            "name": "Fjernovervåget sidst opdateret"
+          },
+          "remote_activity_last_updated_duration": {
+            "name": "Fjernovervåget sidst opdateret varighed"
+          },
+          "main_monitor_last_updated": {
+            "name": "Hovedovervåger sidst opdateret"
+          },
+          "main_monitor_wait_duration_left": {
+            "name": "Hovedovervåger varighed tilbage"
+          }
+        }
+      }
+    }
+  },
+  "issues": {
+    "remote_missing_entity": {
+      "description": "Det ser ud til, at enheden `{entity}` enten er blevet slettet eller omdøbt, hvilket bruges i integrationen til fjernovervågning af aktivitet `{integration}`. \n\n Venligst ret denne fejl.",
+      "title": "Fjernovervågning af aktivitet: Enhed slettet eller omdøbt"
+    },
+    "main_missing_entity": {
+      "description": "Det ser ud til, at enheden `{entity}` enten er blevet slettet eller omdøbt, hvilket bruges i hovedintegrationen til aktivitetsovervågning `{integration}`. \n\n Venligst ret denne fejl.",
+      "title": "Hovedovervågning monitor: Enhed slettet eller omdøbt"
+    }
+  }
 }

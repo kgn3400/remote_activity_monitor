@@ -133,16 +133,16 @@ class RemoteWebsocketConnection:
             await asyncio.sleep(HEARTBEAT_INTERVAL)
 
             LOGGER.debug("Sending ping")
-            event = asyncio.Event()
+            self._event: asyncio.Event = asyncio.Event()
 
             def resp(message):
                 LOGGER.debug("Got pong: %s", message)
-                event.set()
+                self._event.set()
 
             await self.call(resp, "ping")
 
             try:
-                await asyncio.wait_for(event.wait(), HEARTBEAT_TIMEOUT)
+                await asyncio.wait_for(self._event.wait(), HEARTBEAT_TIMEOUT)
             except TimeoutError:
                 LOGGER.warning("heartbeat failed")
 
