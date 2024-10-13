@@ -120,14 +120,28 @@
           "remote_activity_last_updated_duration": {
             "name": "Remote activity last updated duration"
           },
+          "remote_activity_pause": {
+            "name": "Remote activity pause"
+          },
           "main_monitor_last_updated": {
-            "name": "Main monitor last updated"
+            "name": "Activity monitor last updated"
           },
           "main_monitor_wait_duration_left": {
-            "name": "Main monitor wait duration left"
+            "name": "Activity monitor wait duration left"
+          },
+          "main_monitor_pause": {
+            "name": "Activity monitor pause"
           }
         }
       }
+    }
+  },
+  "device": {
+    "main_device": {
+      "name": "Activity monitor"
+    },
+    "remote_device": {
+      "name": "Remote activity monitor"
     }
   },
   "issues": {

@@ -12,6 +12,6 @@
   "issue_tracker": "https://github.com/kgn3400/remote_activity_monitor/issues",
   "requirements": [],
   "ssdp": [],
-  "version": "1.0.4",
+  "version": "1.0.5",
   "zeroconf": []
 }

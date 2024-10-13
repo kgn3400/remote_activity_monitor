@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    ATTR_ENTITY_ID,
     CONF_ACCESS_TOKEN,
     CONF_HOST,
     CONF_PORT,
@@ -34,6 +35,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import (
     ATTR_MAIN_MONITOR_LAST_UPDATED,
+    ATTR_MAIN_MONITOR_PAUSE,
     ATTR_MAIN_MONITOR_WAIT_DURATION_LEFT,
     ATTR_MONITOR_ACTIVITY_ENTITY_ID,
     ATTR_MONITOR_ACTIVITY_FRIENDLY_NAME,
@@ -41,7 +43,7 @@ from .const import (
     ATTR_REMOTE_ACTIVITY_ENTITY_ID,
     ATTR_REMOTE_ACTIVITY_FRIENDLY_NAME,
     ATTR_REMOTE_ACTIVITY_LAST_UPDATED,
-    ATTR_REMOTE_ACTIVITY_LAST_UPDATED_DURATION,
+    ATTR_REMOTE_ACTIVITY_PAUSE,
     CONF_ALL_ENTITIES_ON,
     CONF_COMPONENT_TYPE,
     CONF_DURATION_WAIT_UPDATE,
@@ -53,6 +55,7 @@ from .const import (
     DOMAIN,
     DOMAIN_NAME,
     LOGGER,
+    PAUSE_SWITCH_ENTITY_POSTFIX,
     SERVICE_GET_REMOTE_ENTITIES,
     STATE_BOTH,
     TRANSLATION_KEY,
@@ -225,6 +228,7 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
                 self.sensor_state_listener,
             )
         )
+
         self.async_on_remove(
             self.coordinator.async_add_listener(self.async_write_ha_state)
         )
@@ -375,8 +379,17 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         self.remote_friendly_name: str = ""
         self.remote_entity_id: str = ""
         self.remote_last_updated: datetime = dt_util.now()
+        self.remote_pause: bool = False
+
+        self.remote_binary_sensor_name: str = entry.options.get(CONF_MONITOR_ENTITY)
+        self.remote_switch_pause_name: str = (
+            self.remote_binary_sensor_name.replace("binary_sensor", "switch")
+            + PAUSE_SWITCH_ENTITY_POSTFIX
+        )
 
         self.main_state_on: bool = False
+        self.main_pause: bool = False
+
         self.main_last_updated: datetime = dt_util.now()
 
         self.duration_wait_update: timedelta = timedelta()
@@ -466,6 +479,11 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
     async def async_refresh(self) -> None:
         """Refresh."""
 
+        if self.main_pause or self.remote_pause:
+            self.main_state_on = False
+            self.async_write_ha_state()
+            return
+
         if self.main_state_on == self.map_remote_state_for_changed_type(
             self.remote_state_on
         ):  # No need to update
@@ -486,10 +504,33 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         await self.websocket_connection.async_stop()
 
     # ------------------------------------------------------
+    @callback
+    async def sensor_state_listener(
+        self,
+        event: Event[EventStateChangedData],
+    ) -> None:
+        """Handle state changes on the observed device."""
+
+        if event.data["new_state"] is None:
+            return
+
+        self.main_pause = event.data["new_state"].state == STATE_ON
+        await self.coordinator.async_refresh()
+
+    # ------------------------------------------------------
     async def async_added_to_hass(self) -> None:
         """Complete device setup after being added to hass."""
 
         await self.coordinator.async_config_entry_first_refresh()
+
+        self.async_on_remove(
+            async_track_state_change_event(
+                self.hass,
+                self.entity_id.replace("binary_sensor", "switch")
+                + PAUSE_SWITCH_ENTITY_POSTFIX,
+                self.sensor_state_listener,
+            )
+        )
 
         self.async_on_remove(
             self.coordinator.async_add_listener(self.async_write_ha_state)
@@ -512,9 +553,7 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
             )
 
             for remote_entity in remote_entyties:
-                if remote_entity["entity_id"] == self.entry.options.get(
-                    CONF_MONITOR_ENTITY
-                ):
+                if remote_entity["entity_id"] == self.remote_binary_sensor_name:
                     self.remote_state_on = remote_entity["state"] == STATE_ON
                     self.remote_last_updated = dt_util.as_local(
                         datetime.fromisoformat(remote_entity["last_updated"])
@@ -537,7 +576,10 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
             "subscribe_trigger",
             trigger={
                 "platform": "state",
-                "entity_id": self.entry.options.get(CONF_MONITOR_ENTITY),
+                "entity_id": [
+                    self.remote_binary_sensor_name,
+                    self.remote_switch_pause_name,
+                ],
             },
         )
 
@@ -551,32 +593,48 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
             case "event":
                 to_state: dict = message["event"]["variables"]["trigger"]["to_state"]
 
-                to_remote_state_on: bool = to_state["state"] == "on"
+                if to_state[ATTR_ENTITY_ID] == self.remote_binary_sensor_name:
+                    await self.async_handle_trigger_binary_sensor(to_state)
 
-                # Wait duration is not yet expired for the last event, should we reset the state
-                if (
-                    to_remote_state_on != self.remote_state_on
-                    and self.main_state_on
-                    != self.map_remote_state_for_changed_type(self.remote_state_on)
-                ):
-                    self.main_state_on = self.map_remote_state_for_changed_type(
-                        self.remote_state_on
-                    )
+                if to_state[ATTR_ENTITY_ID] == self.remote_switch_pause_name:
+                    await self.async_handle_trigger_switch(to_state)
 
-                self.remote_state_on = to_remote_state_on
-                self.remote_entity_id = to_state["attributes"][
-                    ATTR_MONITOR_ACTIVITY_ENTITY_ID
-                ]
-                self.remote_friendly_name = to_state["attributes"][
-                    ATTR_MONITOR_ACTIVITY_FRIENDLY_NAME
-                ]
-                self.remote_last_updated = dt_util.as_local(
-                    datetime.fromisoformat(
-                        to_state["attributes"][ATTR_MONITOR_ACTIVITY_LAST_UPDATED]
-                    )
-                )
+    # ------------------------------------------------------------------
+    async def async_handle_trigger_binary_sensor(self, to_state: dict) -> None:
+        """Handle trigger binary sensor."""
 
-                await self.coordinator.async_refresh()
+        to_remote_state_on: bool = to_state["state"] == "on"
+
+        # Wait duration is not yet expired for the last event, should we reset the state
+        if (
+            to_remote_state_on != self.remote_state_on
+            and self.main_state_on
+            != self.map_remote_state_for_changed_type(self.remote_state_on)
+        ):
+            self.main_state_on = self.map_remote_state_for_changed_type(
+                self.remote_state_on
+            )
+
+        self.remote_state_on = to_remote_state_on
+        self.remote_entity_id = to_state["attributes"][ATTR_MONITOR_ACTIVITY_ENTITY_ID]
+        self.remote_friendly_name = to_state["attributes"][
+            ATTR_MONITOR_ACTIVITY_FRIENDLY_NAME
+        ]
+        self.remote_last_updated = dt_util.as_local(
+            datetime.fromisoformat(
+                to_state["attributes"][ATTR_MONITOR_ACTIVITY_LAST_UPDATED]
+            )
+        )
+
+        await self.coordinator.async_refresh()
+
+    # ------------------------------------------------------------------
+    async def async_handle_trigger_switch(self, to_state: dict) -> None:
+        """Handle trigger binary sensor."""
+
+        self.remote_pause: bool = to_state["state"] == "on"
+
+        await self.coordinator.async_refresh()
 
     # ------------------------------------------------------------------
     async def async_create_issue_entity(
@@ -660,8 +718,9 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
             ATTR_REMOTE_ACTIVITY_FRIENDLY_NAME: self.remote_friendly_name,
             ATTR_REMOTE_ACTIVITY_ENTITY_ID: self.remote_entity_id,
             ATTR_REMOTE_ACTIVITY_LAST_UPDATED: self.remote_last_updated,
-            ATTR_REMOTE_ACTIVITY_LAST_UPDATED_DURATION: str(tmp_duration),
+            ATTR_REMOTE_ACTIVITY_PAUSE: self.remote_pause,
             ATTR_MAIN_MONITOR_LAST_UPDATED: self.main_last_updated,
+            ATTR_MAIN_MONITOR_PAUSE: self.main_pause,
         }
 
         tmp_duration = (

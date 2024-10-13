@@ -10,9 +10,14 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
-from .const import DOMAIN, MAIN_DOMAIN_NAME, REMOTE_DOMAIN_NAME
-
-CONST_SW_VERSION = "1.0"
+from .const import (
+    DOMAIN,
+    MAIN_DOMAIN_NAME,
+    REMOTE_DOMAIN_NAME,
+    SW_VERSION,
+    TRANSLATION_KEY_MAIN_DEVICE,
+    TRANSLATION_KEY_REMOTE_DEVICE,
+)
 
 
 class ComponentEntityRemote(CoordinatorEntity[DataUpdateCoordinator], Entity):
@@ -32,8 +37,9 @@ class ComponentEntityRemote(CoordinatorEntity[DataUpdateCoordinator], Entity):
             identifiers={(DOMAIN, REMOTE_DOMAIN_NAME)},
             manufacturer="KGN",
             suggested_area="",
-            sw_version=CONST_SW_VERSION,
+            sw_version=SW_VERSION,
             name=REMOTE_DOMAIN_NAME,
+            translation_key=TRANSLATION_KEY_REMOTE_DEVICE,
         )
 
 
@@ -54,6 +60,7 @@ class ComponentEntityMain(CoordinatorEntity[DataUpdateCoordinator], Entity):
             identifiers={(DOMAIN, MAIN_DOMAIN_NAME)},
             manufacturer="KGN",
             suggested_area="",
-            sw_version=CONST_SW_VERSION,
+            sw_version=SW_VERSION,
             name=MAIN_DOMAIN_NAME,
+            translation_key=TRANSLATION_KEY_MAIN_DEVICE,
         )

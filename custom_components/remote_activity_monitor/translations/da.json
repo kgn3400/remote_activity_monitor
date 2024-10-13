@@ -109,25 +109,39 @@
             "name": "Overvåget aktivitet sidst opdateret"
           },
           "remote_activity_friendly_name": {
-            "name": "Fjernovervåget venligt navn"
+            "name": "Fjernovervåget aktivitet venligt navn"
           },
           "remote_activity_entity_id": {
-            "name": "Fjernovervåget enheds-id"
+            "name": "Fjernovervåget aktivitet enheds-id"
           },
           "remote_activity_last_updated": {
-            "name": "Fjernovervåget sidst opdateret"
+            "name": "Fjernovervåget aktivitet sidst opdateret"
           },
           "remote_activity_last_updated_duration": {
-            "name": "Fjernovervåget sidst opdateret varighed"
+            "name": "Fjernovervåget aktivitet sidst opdateret varighed"
+          },
+          "remote_activity_pause": {
+            "name": "Fjernovervåget aktivitet pause"
           },
           "main_monitor_last_updated": {
-            "name": "Hovedovervåger sidst opdateret"
+            "name": "Aktivitet overvåger sidst opdateret"
           },
           "main_monitor_wait_duration_left": {
-            "name": "Hovedovervåger varighed tilbage"
+            "name": "Aktivitet overvåger varighed tilbage"
+          },
+          "main_monitor_pause": {
+            "name": "Aktivitet overvåger pause"
           }
         }
       }
+    }
+  },
+  "device": {
+    "main_device": {
+      "name": "Overvågning af aktivitet"
+    },
+    "remote_device": {
+      "name": "Fjernovervågning af aktivitet"
     }
   },
   "issues": {
