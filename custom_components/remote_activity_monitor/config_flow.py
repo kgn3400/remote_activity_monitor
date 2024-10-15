@@ -112,7 +112,10 @@ async def _create_form(
             CONF_ENTITY_IDS,
             default=handler.options.get(CONF_ENTITY_IDS, []),
         ): EntitySelector(
-            EntitySelectorConfig(domain=Platform.BINARY_SENSOR, multiple=True),
+            EntitySelectorConfig(
+                domain=[Platform.BINARY_SENSOR, Platform.SWITCH, "input_boolean"],
+                multiple=True,
+            ),
         ),
     }
 

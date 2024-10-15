@@ -150,8 +150,12 @@
       "title": "Remote activity monitor: Entity deleted or renamed"
     },
     "main_missing_entity": {
-      "description": "It looks like either entity `{entity}` has been deleted or renamed, which are used in Main activity monitor integration `{integration}`. \n\n Please fix this problem.",
+      "description": "It looks like either entity `{entity}` has been deleted or renamed, which are used in main activity monitor integration `{integration}`. \n\n Please fix this problem.",
       "title": "Main activity monitor: Entity deleted or renamed"
+    },
+    "main_connection_error": {
+      "description": "It looks like there is a problem connecting to the remote activity monitor, which are used in main activity monitor integration `{integration}`. \n\n Please fix this problem.",
+      "title": "Main activity monitor: Connection error"
     }
   }
 }

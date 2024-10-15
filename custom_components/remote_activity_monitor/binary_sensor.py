@@ -59,6 +59,9 @@ from .const import (
     SERVICE_GET_REMOTE_ENTITIES,
     STATE_BOTH,
     TRANSLATION_KEY,
+    TRANSLATION_KEY_MAIN_CONNECTION_ERROR,
+    TRANSLATION_KEY_MAIN_MISSING_ENTITY,
+    TRANSLATION_KEY_REMOTE_MISSING_ENTITY,
     ComponentType,
 )
 from .entity import ComponentEntityMain, ComponentEntityRemote
@@ -107,7 +110,7 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
 
         super().__init__(self.coordinator, entry)
 
-        self.translation_key: str = TRANSLATION_KEY
+        self.translation_key = TRANSLATION_KEY
 
         self.remote_state: bool = False
         self.remote_friendly_name: str = ""
@@ -241,23 +244,22 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
     ) -> bool:
         """Verify entity exist."""
 
-        # state: State | None = self.hass.states.get(
-        #     self.entry.options.get(CONF_ENTITY_ID)
-        # )
+        for entity in self.monitor_activity_entities:
+            state: State | None = self.hass.states.get(entity)
 
-        # if state is None:
-        #     await self.async_create_issue_entity(
-        #         self.entry.options.get(CONF_ENTITY_ID),
-        #         TRANSLATION_KEY_MISSING_ENTITY,
-        #     )
-        #     self.coordinator.update_interval = None
-        #     return False
+            if state is None:
+                await self.async_create_issue_entity(
+                    entity,
+                    TRANSLATION_KEY_REMOTE_MISSING_ENTITY,
+                )
+                self.coordinator.update_interval = None
+                return False
 
         return True
 
     # ------------------------------------------------------
     async def async_refresh(self) -> None:
-        """Refresh."""
+        """Refresh dummy."""
 
     # ------------------------------------------------------------------
     async def async_create_issue_entity(
@@ -275,7 +277,7 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
             translation_key=translation_key,
             translation_placeholders={
                 "entity": entity_id,
-                "state_updated_helper": self.entity_id,
+                "integration": self.entity_id,
             },
         )
 
@@ -555,21 +557,33 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
             for remote_entity in remote_entyties:
                 if remote_entity["entity_id"] == self.remote_binary_sensor_name:
                     self.remote_state_on = remote_entity["state"] == STATE_ON
+                    self.remote_entity_id = remote_entity["entity_id"]
+                    self.remote_friendly_name = remote_entity["name"]
                     self.remote_last_updated = dt_util.as_local(
                         datetime.fromisoformat(remote_entity["last_updated"])
                     )
-                    await self.websocket_connection.async_connect(self.async_connected)
-                    break
+                    await self.websocket_connection.async_connect(
+                        self.async_on_connected
+                    )
+                    return
+
+            # No hit on entiy, create an issue
+            await self.async_create_issue_entity(
+                self.remote_binary_sensor_name,
+                TRANSLATION_KEY_MAIN_MISSING_ENTITY,
+            )
 
         except Exception:  # noqa: BLE001
-            # Todo: create issue for remote host error!
-            pass
-
-        # todo: create issue for remote entity not found!
+            await self.async_create_issue_entity(
+                self.remote_binary_sensor_name,
+                TRANSLATION_KEY_MAIN_CONNECTION_ERROR,
+            )
 
     # ------------------------------------------------------------------
-    async def async_connected(self) -> None:
+    async def async_on_connected(self) -> None:
         """Host connection established."""
+
+        LOGGER.debug("Host connection established, subscribing to trigger")
 
         await self.websocket_connection.call(
             self.async_handle_event_message,
@@ -589,7 +603,9 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
 
         match message["type"]:
             case "result":
-                pass
+                if message["success"] is not True:
+                    LOGGER.error("Error on subcribe_trigger")
+
             case "event":
                 to_state: dict = message["event"]["variables"]["trigger"]["to_state"]
 
@@ -652,7 +668,7 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
             translation_key=translation_key,
             translation_placeholders={
                 "entity": entity_id,
-                "state_updated_helper": self.entity_id,
+                "integration": self.entity_id,
             },
         )
 

@@ -24,7 +24,7 @@
         "description": "Fjernovervågning af aktivitet giver dig mulighed for at overvåge status for valgte binære sensorer på eksterne Home Assistant-enheder.",
         "menu_options": {
           "main": "Tilføj hovedintegration fjernovervågning af aktivitet",
-          "remote": "Tilføj fjernintegration Fjernovervågning af aktivitet"
+          "remote": "Tilføj fjernintegration fjernovervågning af aktivitet"
         }
       },
       "main": {
@@ -152,6 +152,10 @@
     "main_missing_entity": {
       "description": "Det ser ud til, at enheden `{entity}` enten er blevet slettet eller omdøbt, hvilket bruges i hovedintegrationen til aktivitetsovervågning `{integration}`. \n\n Venligst ret denne fejl.",
       "title": "Hovedovervågning monitor: Enhed slettet eller omdøbt"
+    },
+    "main_connection_error": {
+      "description": "Det ser ud til at der et problem med at forbinde til fjernovervågning enheden, hvilket bruges i hovedintegrationen til aktivitetsovervågning `{integration}`. \n\n Venligst ret denne fejl.",
+      "title": "Hovedovervågning monitor: Forbindelses fejl"
     }
   }
 }

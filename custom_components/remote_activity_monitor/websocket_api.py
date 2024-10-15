@@ -1,7 +1,6 @@
-"""Connect two Home Assistant instances via the Websocket API."""
-# Inspiration and parts Borrow from https://github.com/custom-components/remote_homeassistant
+"""Websocket API for connecting toHome Assistant."""
+# Inspiration and parts borrowed from https://github.com/custom-components/remote_homeassistant
 
-# import aiohttp
 import asyncio
 from collections.abc import Callable
 import contextlib
@@ -38,7 +37,7 @@ class RemoteWebsocketConnection:
     # ------------------------------------------------------
     def __init__(
         self,
-        hass,
+        hass: HomeAssistant,
         host: str,
         port: int,
         access_token: str,
@@ -61,10 +60,9 @@ class RemoteWebsocketConnection:
         self._heartbeat_task = None
         self._is_stopping: bool = False
         self._handlers: dict = {}
-
         self.set_connection_state(STATE_CONNECTING)
 
-        self.__id = 1
+        self.__id: int = 1
 
         self._background_tasks = set()
 
@@ -211,7 +209,9 @@ class RemoteWebsocketConnection:
         self._heartbeat_task = None
 
         if not self._is_stopping:
-            tmp_task = asyncio.ensure_future(self.async_connect())
+            tmp_task = asyncio.ensure_future(
+                self.async_connect(self._on_connected, self._on_disconnected)
+            )
             # todo: Skal background task nulstilles?
             self._background_tasks.add(tmp_task)
 

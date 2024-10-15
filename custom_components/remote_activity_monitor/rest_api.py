@@ -1,5 +1,5 @@
-"""Simple implementation to call Home Assistant REST API."""
-# Borrow from https://github.com/custom-components/remote_homeassistant
+"""Rest api connection to Home Assistant."""
+# borrowed from https://github.com/custom-components/remote_homeassistant
 
 from typing import Any
 
