@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from enum import StrEnum
 from typing import Any, cast
 
 import voluptuous as vol
@@ -47,12 +48,29 @@ from .const import (
     CONF_MONITOR_STATE_CHANGED_TYPE,
     CONF_SECURE,
     DOMAIN,
+    SERVICE_GET_REMOTE_ENTITIES,
     STATE_BOTH,
     TRANSLATION_KEY_STATE_MONTOR_TYPE,
-    ComponentType,
-    StepType,
 )
 from .rest_api import ApiProblem, EndpointMissing, RestApi
+
+
+# ------------------------------------------------------------------
+# ------------------------------------------------------------------
+class ComponentType(StrEnum):
+    """Available entity component types."""
+
+    MAIN = "main"
+    REMOTE = "remote"
+
+
+# ------------------------------------------------------------------
+# ------------------------------------------------------------------
+class StepType(StrEnum):
+    """Step types."""
+
+    CONFIG = "config"
+    OPTIONS = "options"
 
 
 # ------------------------------------------------------------------
@@ -69,6 +87,8 @@ async def _async_create_monitor_list(
         options[CONF_ACCESS_TOKEN],
         options[CONF_SECURE],
         options[CONF_VERIFY_SSL],
+        DOMAIN,
+        SERVICE_GET_REMOTE_ENTITIES,
     )
 
     tmp_list: list[dict[str, str]] = [

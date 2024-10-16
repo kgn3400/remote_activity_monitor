@@ -306,21 +306,6 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
 
     # ------------------------------------------------------
     @property
-    def icon(self) -> str:
-        """Icon.
-
-        Returns:
-            str: Icon name
-
-        """
-
-        if self.remote_state:
-            return "mdi:alert-plus-outline"
-
-        return "mdi:alert-outline"
-
-    # ------------------------------------------------------
-    @property
     def is_on(self) -> bool:
         """Get the state."""
 
@@ -552,6 +537,8 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
                 self.entry.options.get(CONF_ACCESS_TOKEN),
                 self.entry.options.get(CONF_SECURE),
                 self.entry.options.get(CONF_VERIFY_SSL),
+                DOMAIN,
+                SERVICE_GET_REMOTE_ENTITIES,
             )
 
             for remote_entity in remote_entyties:
@@ -694,21 +681,6 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         """
 
         return self.entry.entry_id
-
-    # ------------------------------------------------------
-    @property
-    def icon(self) -> str:
-        """Icon.
-
-        Returns:
-            str: Icon name
-
-        """
-
-        if self.main_state_on:
-            return "mdi:alert-plus-outline"
-
-        return "mdi:alert-outline"
 
     # ------------------------------------------------------
     @property

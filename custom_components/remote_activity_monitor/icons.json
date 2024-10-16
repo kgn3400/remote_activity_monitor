@@ -1,0 +1,12 @@
+{
+    "entity": {
+        "binary_sensor": {
+            "remote_activity_monitor": {
+                "default": "mdi:alert-outline",
+                "state": {
+                    "on": "mdi:alert-plus-outline"
+                }
+            }
+        }
+    }
+}

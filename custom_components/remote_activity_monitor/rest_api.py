@@ -9,8 +9,6 @@ from homeassistant import exceptions
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import DOMAIN, SERVICE_GET_REMOTE_ENTITIES
-
 
 class ApiProblem(exceptions.HomeAssistantError):
     """Error to indicate problem reaching API."""
@@ -47,10 +45,12 @@ class RestApi:
         access_token: str,
         secure: bool,
         verify_ssl: bool,
+        domain: str,
+        service: str,
     ) -> list[dict[str, Any]] | None:
         """Get remote activity monitors."""
 
-        url = f'{"https" if secure else "http"}://{host}:{port}/api/services/{DOMAIN}/{SERVICE_GET_REMOTE_ENTITIES}?return_response=true'
+        url = f'{"https" if secure else "http"}://{host}:{port}/api/services/{domain}/{service}?return_response=true'
 
         headers = {
             "Authorization": "Bearer " + access_token,
