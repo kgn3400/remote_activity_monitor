@@ -34,10 +34,13 @@ class EndpointMissing(exceptions.HomeAssistantError):
     """Error to indicate there is invalid auth."""
 
 
+# ------------------------------------------------------
+# ------------------------------------------------------
 class RestApi:
     """Home Assistant REST API."""
 
-    async def async_get_remote_activity_monitors(
+    # ------------------------------------------------------
+    async def async_post_service(
         self,
         hass: HomeAssistant,
         host: str,
@@ -47,10 +50,12 @@ class RestApi:
         verify_ssl: bool,
         domain: str,
         service: str,
+        return_response: bool = False,
     ) -> list[dict[str, Any]] | None:
         """Get remote activity monitors."""
 
-        url = f'{"https" if secure else "http"}://{host}:{port}/api/services/{domain}/{service}?return_response=true'
+        # url = f'{"https" if secure else "http"}://{host}:{port}/api/services/{domain}/{service}?return_response=true'
+        url = f'{"https" if secure else "http"}://{host}:{port}/api/services/{domain}/{service}{"?return_response=true" if return_response else ""}'
 
         headers = {
             "Authorization": "Bearer " + access_token,
@@ -58,15 +63,25 @@ class RestApi:
         }
         session: ClientSession = async_get_clientsession(hass, verify_ssl)
 
-        # Get remote activity monitors
         async with session.post(url, headers=headers) as resp:
-            if resp.status == 404:
-                raise EndpointMissing
-            if 400 <= resp.status < 500:
-                raise InvalidAuth
-            if resp.status != 200:
-                raise ApiProblem
+            self._check_resp_status(resp.status)
+
             json = await resp.json()
-            if not isinstance(json, dict) or "service_response" not in json:
+
+            if (
+                return_response
+                and not isinstance(json, dict)
+                or "service_response" not in json
+            ):
                 raise BadResponse(f"Bad response data: {json}")
-            return json["service_response"]["remotes"]
+
+            return json["service_response"] if return_response else None
+
+    # ------------------------------------------------------
+    def _check_resp_status(self, status: int) -> None:
+        if status == 404:
+            raise EndpointMissing
+        if 400 <= status < 500:
+            raise InvalidAuth
+        if status != 200:
+            raise ApiProblem

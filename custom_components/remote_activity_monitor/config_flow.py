@@ -80,16 +80,19 @@ async def _async_create_monitor_list(
 ) -> list[dict[str, Any]]:
     """Create a list of remotes to monitors."""
 
-    monitors: list[dict[str, Any]] = await RestApi().async_get_remote_activity_monitors(
-        handler.parent_handler.hass,
-        options[CONF_HOST],
-        options[CONF_PORT],
-        options[CONF_ACCESS_TOKEN],
-        options[CONF_SECURE],
-        options[CONF_VERIFY_SSL],
-        DOMAIN,
-        SERVICE_GET_REMOTE_ENTITIES,
-    )
+    monitors: list[dict[str, Any]] = (
+        await RestApi().async_post_service(
+            handler.parent_handler.hass,
+            options[CONF_HOST],
+            options[CONF_PORT],
+            options[CONF_ACCESS_TOKEN],
+            options[CONF_SECURE],
+            options[CONF_VERIFY_SSL],
+            DOMAIN,
+            SERVICE_GET_REMOTE_ENTITIES,
+            True,
+        )
+    )["remotes"]
 
     tmp_list: list[dict[str, str]] = [
         {"label": monitor["name"], "value": monitor["entity_id"]}

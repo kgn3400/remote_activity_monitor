@@ -530,16 +530,19 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         """Hass started."""
 
         try:
-            remote_entyties: list = await RestApi().async_get_remote_activity_monitors(
-                self.hass,
-                self.entry.options.get(CONF_HOST),
-                self.entry.options.get(CONF_PORT),
-                self.entry.options.get(CONF_ACCESS_TOKEN),
-                self.entry.options.get(CONF_SECURE),
-                self.entry.options.get(CONF_VERIFY_SSL),
-                DOMAIN,
-                SERVICE_GET_REMOTE_ENTITIES,
-            )
+            remote_entyties: list = (
+                await RestApi().async_post_service(
+                    self.hass,
+                    self.entry.options.get(CONF_HOST),
+                    self.entry.options.get(CONF_PORT),
+                    self.entry.options.get(CONF_ACCESS_TOKEN),
+                    self.entry.options.get(CONF_SECURE),
+                    self.entry.options.get(CONF_VERIFY_SSL),
+                    DOMAIN,
+                    SERVICE_GET_REMOTE_ENTITIES,
+                    True,
+                )
+            )["remotes"]
 
             for remote_entity in remote_entyties:
                 if remote_entity["entity_id"] == self.remote_binary_sensor_name:
@@ -552,6 +555,8 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
                     await self.websocket_connection.async_connect(
                         self.async_on_connected
                     )
+
+                    await self.coordinator.async_refresh()
                     return
 
             # No hit on entiy, create an issue
@@ -572,7 +577,7 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
 
         LOGGER.debug("Host connection established, subscribing to trigger")
 
-        await self.websocket_connection.call(
+        await self.websocket_connection.async_call(
             self.async_handle_event_message,
             "subscribe_trigger",
             trigger={
