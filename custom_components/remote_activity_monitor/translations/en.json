@@ -144,6 +144,36 @@
       "name": "Remote activity monitor"
     }
   },
+  "services": {
+    "main_on_switch": {
+      "description": "Turns on/off the main activity activated switch.",
+      "name": "Main activity activated switch",
+      "fields": {
+        "main_on_switch": {
+          "description": "Turns on/off the main activity activated switch.",
+          "name": "Main activity activated switch"
+        }
+      }
+    },
+    "update_main_options": {
+      "description": "Update main activity monitor options.",
+      "name": "Update options",
+      "fields": {
+        "duration_wait_update": {
+          "description": "Duration before state is marked as changed.",
+          "name": "Duration before state is marked as changed"
+        },
+        "monitor_state_changed_type": {
+          "description": "Monitor state changed.",
+          "name": "Monitor state changed"
+        },
+        "save_options": {
+          "description": "Save options.",
+          "name": "Save options"
+        }
+      }
+    }
+  },
   "issues": {
     "remote_missing_entity": {
       "description": "It looks like either entity `{entity}` has been deleted or renamed, which are used in Remote activity monitor integration `{integration}`. \n\n Please fix this problem.",

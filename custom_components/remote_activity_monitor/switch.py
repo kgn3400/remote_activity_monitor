@@ -13,7 +13,7 @@ from .const import (
     CONF_COMPONENT_TYPE,
     DOMAIN,
     MAIN_DOMAIN_NAME,
-    PAUSE_SWITCH_ENTITY_POSTFIX,
+    POSTFIX_PAUSE_SWITCH_ENTITY,
     REMOTE_DOMAIN_NAME,
     SW_VERSION,
     TRANSLATION_KEY_MAIN_DEVICE,
@@ -102,7 +102,7 @@ class RemotePauseSwitch(SwitchEntity):
 
         """
 
-        return self.entry.entry_id + PAUSE_SWITCH_ENTITY_POSTFIX
+        return self.entry.entry_id + POSTFIX_PAUSE_SWITCH_ENTITY
 
 
 # ------------------------------------------------------
@@ -171,4 +171,4 @@ class MainPauseSwitch(SwitchEntity):
 
         """
 
-        return self.entry.entry_id + PAUSE_SWITCH_ENTITY_POSTFIX
+        return self.entry.entry_id + POSTFIX_PAUSE_SWITCH_ENTITY

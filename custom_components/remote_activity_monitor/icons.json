@@ -8,5 +8,13 @@
                 }
             }
         }
+    },
+    "services": {
+        "main_on_switch": {
+            "service": "mdi:toggle-switch-outline"
+        },
+        "update_main_options": {
+            "service": "mdi:update"
+        }
     }
 }

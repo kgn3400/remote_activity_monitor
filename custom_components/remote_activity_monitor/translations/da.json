@@ -144,6 +144,36 @@
       "name": "Fjernovervågning af aktivitet"
     }
   },
+  "services": {
+    "main_on_switch": {
+      "description": "Tænd/sluk for hovedovervågning aktiveret.",
+      "name": "Hovedovervågning aktiveret",
+      "fields": {
+        "main_on_switch": {
+          "description": "Tænd/sluk for hovedovervågning aktiveret.",
+          "name": "Hovedovervågning aktiveret"
+        }
+      }
+    },
+    "update_main_options": {
+      "description": "Opdater hovedovervågning aktivitet konfiguration.",
+      "name": "Opdater konfiguration",
+      "fields": {
+        "duration_wait_update": {
+          "description": "Varighed før tilstand markeres som ændret.",
+          "name": "Varighed før tilstand markeres som ændret"
+        },
+        "monitor_state_changed_type": {
+          "description": "Overvågning af tilstandsændring.",
+          "name": "Overvågning af tilstandsændring"
+        },
+        "save_options": {
+          "description": "Gem konfiguration.",
+          "name": "Gem konfiguration"
+        }
+      }
+    }
+  },
   "issues": {
     "remote_missing_entity": {
       "description": "Det ser ud til, at enheden `{entity}` enten er blevet slettet eller omdøbt, hvilket bruges i integrationen til fjernovervågning af aktivitet `{integration}`. \n\n Venligst ret denne fejl.",

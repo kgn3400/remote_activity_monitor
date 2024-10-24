@@ -7,12 +7,18 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
 from .const import CONF_COMPONENT_TYPE, DOMAIN, ComponentType
+from .shared import Shared
 
 
 # ------------------------------------------------------------------
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Remote activity monitor from a config entry."""
-    hass.data.setdefault(DOMAIN, {})
+
+    shared = Shared()
+
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
+        "shared": shared,
+    }
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
@@ -57,5 +63,11 @@ async def update_listener(
     config_entry: ConfigEntry,
 ) -> None:
     """Reload on config entry update."""
+
+    shared: Shared = hass.data[DOMAIN][config_entry.entry_id]["shared"]
+
+    if shared.supress_update_listener:
+        shared.supress_update_listener = False
+        return
 
     await hass.config_entries.async_reload(config_entry.entry_id)

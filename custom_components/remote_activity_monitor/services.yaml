@@ -5,3 +5,57 @@ get_remote_entities:
 # Description of the service
 # description: Check for PyPi updates.
 
+main_on_switch:
+  target:
+    entity:
+      integration: remote_activity_monitor
+      domain: binary_sensor
+
+    # Key of the field
+  fields:
+    main_on_switch:
+      # Field name as shown in UI
+      # name: Notify
+      # Description of the field
+      # description: Create a notification
+      # Whether or not field is required (default = false)
+      required: true
+      # Advanced fields are only shown when the advanced mode is enabled for the user
+      # (default = false)
+      example: false
+      # The default field value
+      default: false
+      selector:
+        boolean:
+
+update_main_options:
+  target:
+    entity:
+      integration: remote_activity_monitor
+      domain: binary_sensor
+
+  # Key of the field
+  fields:
+    duration_wait_update:
+      required: false
+
+      selector:
+        duration:
+          enable_day: true
+    monitor_state_changed_type:
+      required: false
+      selector:
+        select:
+          translation_key: "state_changed_type"
+
+          options:
+            - "both"
+            - "on"
+            - "off"
+
+    save_options:
+      required: false
+      default: true
+
+      selector:
+        boolean:

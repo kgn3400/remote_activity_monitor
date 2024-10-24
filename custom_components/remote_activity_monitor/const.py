@@ -22,14 +22,14 @@ CONF_SECURE = "secure"
 CONF_MONITOR_ENTITY = "monitor_entity"
 CONF_DURATION_WAIT_UPDATE = "duration_wait_update"
 CONF_MONITOR_STATE_CHANGED_TYPE = "monitor_state_changed_type"
-
 CONF_ENTITY_IDS = "entity_ids"
 CONF_ALL_ENTITIES_ON = "all_entities_on"
-SERVICE_GET_REMOTE_ENTITIES = "get_remote_entities"
+CONF_SAVE_OPTIONS = "save_options"
 
 STATE_BOTH = "both"
 
-PAUSE_SWITCH_ENTITY_POSTFIX = "_pause"
+POSTFIX_PAUSE_SWITCH_ENTITY = "_pause"
+POSTFIX_MAIN_ON_ENTITY = "_host_on"
 
 DEFAULT_MAX_MSG_SIZE = 16 * 1024 * 1024
 DEFAULT_UPDATE_INTERVAL = 60
@@ -37,6 +37,10 @@ HEARTBEAT_INTERVAL = 20
 HEARTBEAT_TIMEOUT = 5
 
 SW_VERSION = "1.0"
+
+SERVICE_GET_REMOTE_ENTITIES = "get_remote_entities"
+SERVICE_MAIN_ON_SWITCH = "main_on_switch"
+SERVICE_UPDATE_MAIN_OPTIONS = "update_main_options"
 
 ATTR_MONITOR_ACTIVITY_ENTITY_ID = "monitor_activity_entity_id"
 ATTR_MONITOR_ACTIVITY_FRIENDLY_NAME = "monitor_activity_friendly_name"
