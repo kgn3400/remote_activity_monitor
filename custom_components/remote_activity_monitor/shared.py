@@ -2,7 +2,7 @@
 
 
 class Shared:
-    """SHared."""
+    """Shared."""
 
     def __init__(self):
         """Init."""

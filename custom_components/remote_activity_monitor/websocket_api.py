@@ -141,10 +141,10 @@ class RemoteWebsocketConnection:
         tmp_task = asyncio.ensure_future(self._async_recv())
         self._background_tasks.add(tmp_task)
 
-        self._heartbeat_task = self._hass.loop.create_task(self._saync_heartbeat_loop())
+        self._heartbeat_task = self._hass.loop.create_task(self._async_heartbeat_loop())
 
     # ------------------------------------------------------
-    async def _saync_heartbeat_loop(self):
+    async def _async_heartbeat_loop(self):
         """Send periodic heartbeats to remote instance."""
         while self._connection is not None and not self._connection.closed:
             await asyncio.sleep(HEARTBEAT_INTERVAL)
