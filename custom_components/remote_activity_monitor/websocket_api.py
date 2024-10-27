@@ -65,6 +65,8 @@ class RemoteWebsocketConnection:
             Callable[[ConnectionStateType], None] | None
         ) = on_connection_state_changed
 
+        self.connection_state: ConnectionStateType = ConnectionStateType.STATE_INIT
+
         self._connection: ClientWebSocketResponse | None = None
         self._heartbeat_task = None
         self._is_stopping: bool = False
@@ -77,6 +79,8 @@ class RemoteWebsocketConnection:
     # ------------------------------------------------------
     async def async_connection_state_changed_event(self, state: ConnectionStateType):
         """Report connection state and Change."""
+
+        self.connection_state = state
 
         if self._on_connection_state_changed is not None:
             if inspect.iscoroutinefunction(self._on_connection_state_changed):

@@ -159,7 +159,7 @@ class MainPauseSwitch(SwitchEntity):
             str: Name of sensor
 
         """
-        return self.entry.title + " Pause"
+        return self.entry.title + POSTFIX_PAUSE_SWITCH_ENTITY
 
     # ------------------------------------------------------
     @property

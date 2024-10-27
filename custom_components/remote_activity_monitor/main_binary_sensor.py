@@ -66,7 +66,7 @@ from .const import (
 from .entity import ComponentEntityMain
 from .rest_api import RestApi
 from .shared import Shared
-from .websocket_api import RemoteWebsocketConnection
+from .websocket_api import ConnectionStateType, RemoteWebsocketConnection
 
 
 # ------------------------------------------------------
@@ -95,13 +95,12 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         self.shared: Shared = hass.data[DOMAIN][entry.entry_id]["shared"]
 
         self.remote_binary_sensor_name: str = entry.options.get(CONF_MONITOR_ENTITY)
-        self.main_on_binary_sensor_name: str = (
-            entry.options.get(CONF_MONITOR_ENTITY) + POSTFIX_MAIN_ON_ENTITY
-        )
-        self.remote_switch_pause_name: str = (
-            self.remote_binary_sensor_name.replace("binary_sensor", "switch")
-            + POSTFIX_PAUSE_SWITCH_ENTITY
-        )
+        self.main_on_binary_sensor_name: str = entry.options.get(
+            CONF_MONITOR_ENTITY
+        ) + POSTFIX_MAIN_ON_ENTITY.lower().replace(" ", "_")
+        self.remote_switch_pause_name: str = self.remote_binary_sensor_name.replace(
+            "binary_sensor", "switch"
+        ) + POSTFIX_PAUSE_SWITCH_ENTITY.lower().replace(" ", "_")
 
         self.main_state_on: bool = False
         self.main_pause: bool = False
@@ -314,8 +313,7 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         self.async_on_remove(
             async_track_state_change_event(
                 self.hass,
-                self.entity_id.replace("binary_sensor", "switch")
-                + POSTFIX_PAUSE_SWITCH_ENTITY,
+                self.remote_switch_pause_name,
                 self.sensor_state_listener,
             )
         )
@@ -381,6 +379,13 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         """Update the main on switch."""
 
         LOGGER.debug("Updating main on switch")
+
+        if (
+            self.websocket_connection.connection_state
+            != ConnectionStateType.STATE_CONNECTED
+        ):
+            LOGGER.debug("Not connected, not updating main on switch")
+            return
 
         await self.websocket_connection.async_call(
             self.async_websocket_service_call_response,
