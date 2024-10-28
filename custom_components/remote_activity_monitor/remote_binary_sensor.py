@@ -6,7 +6,7 @@ from datetime import datetime
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.const import MATCH_ALL, STATE_OFF, STATE_ON
 from homeassistant.core import (
     Event,
     HomeAssistant,
@@ -47,6 +47,8 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
 
     class_entity_list: list[RemoteAcitvityMonitorBinarySensor] = []
 
+    _unrecorded_attributes = frozenset({MATCH_ALL})
+
     # ------------------------------------------------------
     def __init__(
         self,
@@ -54,6 +56,7 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
         entry: ConfigEntry,
     ) -> None:
         """Binary sensor."""
+
         self.entry: ConfigEntry = entry
         self.hass = hass
 
@@ -109,6 +112,7 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
     # ------------------------------------------------------
     async def async_will_remove_from_hass(self) -> None:
         """When removed from hass."""
+
         RemoteAcitvityMonitorBinarySensor.class_entity_list.remove(self)
 
     # ------------------------------------------------------

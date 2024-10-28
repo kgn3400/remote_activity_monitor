@@ -15,6 +15,7 @@ from homeassistant.const import (
     CONF_HOST,
     CONF_PORT,
     CONF_VERIFY_SSL,
+    MATCH_ALL,
     STATE_OFF,
     STATE_ON,
 )
@@ -73,6 +74,8 @@ from .websocket_api import ConnectionStateType, RemoteWebsocketConnection
 # ------------------------------------------------------
 class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
     """Binary sensor class for the main activity monitor."""
+
+    _unrecorded_attributes = frozenset({MATCH_ALL})
 
     # ------------------------------------------------------
     def __init__(
@@ -328,46 +331,9 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
     async def hass_started(self, _event: Event) -> None:
         """Hass started."""
 
-        try:
-            remote_entyties: list = (
-                await RestApi().async_post_service(
-                    self.hass,
-                    self.entry.options.get(CONF_HOST),
-                    self.entry.options.get(CONF_PORT),
-                    self.entry.options.get(CONF_ACCESS_TOKEN),
-                    self.entry.options.get(CONF_SECURE),
-                    self.entry.options.get(CONF_VERIFY_SSL),
-                    DOMAIN,
-                    SERVICE_GET_REMOTE_ENTITIES,
-                    True,
-                )
-            )["remotes"]
-
-            for remote_entity in remote_entyties:
-                if remote_entity["entity_id"] == self.remote_binary_sensor_name:
-                    self.remote_state_on = remote_entity["state"] == STATE_ON
-                    self.remote_entity_id = remote_entity["entity_id"]
-                    self.remote_friendly_name = remote_entity["name"]
-                    self.remote_last_updated = dt_util.as_local(
-                        datetime.fromisoformat(remote_entity["last_updated"])
-                    )
-                    await self.websocket_connection.async_connect(
-                        self.async_websocket_on_connected
-                    )
-
-                    await self.coordinator.async_refresh()
-                    return
-
-            # No hit on entiy, create an issue
-            await self.async_create_issue_entity(
-                self.remote_binary_sensor_name,
-                TRANSLATION_KEY_MAIN_MISSING_ENTITY,
-            )
-
-        except Exception:  # noqa: BLE001
-            await self.async_create_issue_entity(
-                self.remote_binary_sensor_name,
-                TRANSLATION_KEY_MAIN_CONNECTION_ERROR,
+        if await self.async_restapi_service_get_remote_entity():
+            await self.websocket_connection.async_connect(
+                self.async_websocket_on_connected
             )
 
     # ------------------------------------------------------------------
@@ -401,8 +367,57 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         )
 
     # ------------------------------------------------------------------
+    async def async_restapi_service_get_remote_entity(self) -> None:
+        """Restapi service get remote entity."""
+
+        try:
+            remote_entyties: list = (
+                await RestApi().async_post_service(
+                    self.hass,
+                    self.entry.options.get(CONF_HOST),
+                    self.entry.options.get(CONF_PORT),
+                    self.entry.options.get(CONF_ACCESS_TOKEN),
+                    self.entry.options.get(CONF_SECURE),
+                    self.entry.options.get(CONF_VERIFY_SSL),
+                    DOMAIN,
+                    SERVICE_GET_REMOTE_ENTITIES,
+                    True,
+                )
+            )["remotes"]
+
+            for remote_entity in remote_entyties:
+                if remote_entity["entity_id"] == self.remote_binary_sensor_name:
+                    self.remote_state_on = remote_entity["state"] == STATE_ON
+                    self.remote_entity_id = remote_entity["entity_id"]
+                    self.remote_friendly_name = remote_entity["name"]
+                    self.remote_last_updated = dt_util.as_local(
+                        datetime.fromisoformat(remote_entity["last_updated"])
+                    )
+
+                    await self.coordinator.async_refresh()
+                    return True
+
+            # No hit on entiy, create an issue
+            await self.async_create_issue_entity(
+                self.remote_binary_sensor_name,
+                TRANSLATION_KEY_MAIN_MISSING_ENTITY,
+            )
+
+        except Exception:  # noqa: BLE001
+            await self.async_create_issue_entity(
+                self.remote_binary_sensor_name,
+                TRANSLATION_KEY_MAIN_CONNECTION_ERROR,
+            )
+
+        return False
+
+    # ------------------------------------------------------------------
     async def async_websocket_on_connected(self) -> None:
         """Host connection established."""
+
+        LOGGER.debug("Host connection established, get remote entities via restapi")
+
+        await self.async_restapi_service_get_remote_entity()
 
         LOGGER.debug("Host connection established, subscribing to trigger")
 
@@ -440,7 +455,8 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
 
     # ------------------------------------------------------------------
     async def async_websocket_handle_trigger_binary_sensor(
-        self, to_state: dict
+        self,
+        to_state: dict,
     ) -> None:
         """Handle trigger binary sensor."""
 
