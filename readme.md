@@ -6,7 +6,7 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/kgn3400/remote_activity_monitor)
 [![Validate% with hassfest](https://github.com/kgn3400/remote_activity_monitor/workflows/Validate%20with%20hassfest/badge.svg)](https://github.com/kgn3400/remote_activity_monitor/actions/workflows/hassfest.yaml)
 
-The Remote activity monitor allows you to monitor the status of a binary sensor or a set of binary sensors on a remote Home Assistant device.
+The Remote activity monitor allows you to monitor the status of a binary/switch sensor or a set of binary/switch sensors on a remote Home Assistant device.
 
 For installation instructions, until the Remote activity monitor is part of HACS, [see this guide](https://hacs.xyz/docs/faq/custom_repositories).
 Or click

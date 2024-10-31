@@ -126,6 +126,9 @@ class RemoteWebsocketConnection:
 
         while True:
             try:
+                if self._is_stopping:
+                    return
+
                 LOGGER.info("Connecting to %s", url)
                 self._connection = await session.ws_connect(
                     url, max_msg_size=DEFAULT_MAX_MSG_SIZE
@@ -177,16 +180,12 @@ class RemoteWebsocketConnection:
 
     # ------------------------------------------------------
     async def async_stop(self):
-        """Close connection."""
+        """Stop connection."""
         self._is_stopping = True
+        await self._async_disconnected()
+
         if self._connection is not None:
             await self._connection.close()
-
-        if self._on_disconnected is not None:
-            if inspect.iscoroutinefunction(self._on_disconnected):
-                await self._on_disconnected()
-            else:
-                self._on_disconnected()
 
     # ------------------------------------------------------
     def _next_id(self):
