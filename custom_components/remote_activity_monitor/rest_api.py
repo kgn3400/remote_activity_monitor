@@ -54,7 +54,6 @@ class RestApi:
     ) -> list[dict[str, Any]] | None:
         """Get remote activity monitors."""
 
-        # url = f'{"https" if secure else "http"}://{host}:{port}/api/services/{domain}/{service}?return_response=true'
         url = f'{"https" if secure else "http"}://{host}:{port}/api/services/{domain}/{service}{"?return_response=true" if return_response else ""}'
 
         headers = {

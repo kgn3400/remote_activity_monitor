@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -65,7 +66,7 @@ from .const import (
     TRANSLATION_KEY_MAIN_MISSING_ENTITY,
 )
 from .entity import ComponentEntityMain
-from .rest_api import RestApi
+from .rest_api import BadResponse, RestApi
 from .shared import Shared
 from .websocket_api import ConnectionStateType, RemoteWebsocketConnection
 
@@ -370,6 +371,52 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
     async def async_restapi_service_get_remote_entity(self) -> None:
         """Restapi service get remote entity."""
 
+        MAX_RETRY_COUNT: int = 5
+
+        # Retry loop
+        for loop_count in range(MAX_RETRY_COUNT):
+            remote_entyties: list = (
+                await self.async_call_restapi_service_get_remote_entity()
+            )
+
+            if remote_entyties is not None:
+                break
+
+            # If this is the last retry, create an issue
+            if loop_count == (MAX_RETRY_COUNT - 1):
+                await self.async_create_issue_entity(
+                    self.remote_binary_sensor_name,
+                    TRANSLATION_KEY_MAIN_CONNECTION_ERROR,
+                )
+
+                return False
+
+            await asyncio.sleep(10)
+
+        for remote_entity in remote_entyties:
+            if remote_entity["entity_id"] == self.remote_binary_sensor_name:
+                self.remote_state_on = remote_entity["state"] == STATE_ON
+                self.remote_entity_id = remote_entity["entity_id"]
+                self.remote_friendly_name = remote_entity["name"]
+                self.remote_last_updated = dt_util.as_local(
+                    datetime.fromisoformat(remote_entity["last_updated"])
+                )
+
+                await self.coordinator.async_refresh()
+                return True
+
+        # No hit on entiy, create an issue
+        await self.async_create_issue_entity(
+            self.remote_binary_sensor_name,
+            TRANSLATION_KEY_MAIN_MISSING_ENTITY,
+        )
+
+        return False
+
+    # ------------------------------------------------------------------
+    async def async_call_restapi_service_get_remote_entity(self) -> list | None:
+        """Call restapi service get remote entity."""
+
         try:
             remote_entyties: list = (
                 await RestApi().async_post_service(
@@ -385,31 +432,10 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
                 )
             )["remotes"]
 
-            for remote_entity in remote_entyties:
-                if remote_entity["entity_id"] == self.remote_binary_sensor_name:
-                    self.remote_state_on = remote_entity["state"] == STATE_ON
-                    self.remote_entity_id = remote_entity["entity_id"]
-                    self.remote_friendly_name = remote_entity["name"]
-                    self.remote_last_updated = dt_util.as_local(
-                        datetime.fromisoformat(remote_entity["last_updated"])
-                    )
+        except BadResponse:
+            return None
 
-                    await self.coordinator.async_refresh()
-                    return True
-
-            # No hit on entiy, create an issue
-            await self.async_create_issue_entity(
-                self.remote_binary_sensor_name,
-                TRANSLATION_KEY_MAIN_MISSING_ENTITY,
-            )
-
-        except Exception:  # noqa: BLE001
-            await self.async_create_issue_entity(
-                self.remote_binary_sensor_name,
-                TRANSLATION_KEY_MAIN_CONNECTION_ERROR,
-            )
-
-        return False
+        return remote_entyties
 
     # ------------------------------------------------------------------
     async def async_websocket_on_connected(self) -> None:
