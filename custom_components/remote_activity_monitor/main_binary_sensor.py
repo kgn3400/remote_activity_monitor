@@ -9,7 +9,6 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     CONF_ACCESS_TOKEN,
@@ -35,6 +34,7 @@ from homeassistant.helpers.event import (
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
+from . import CommonConfigEntry
 from .const import (
     ATTR_MAIN_MONITOR_LAST_UPDATED,
     ATTR_MAIN_MONITOR_PAUSE,
@@ -82,10 +82,10 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
     def __init__(
         self,
         hass: HomeAssistant,
-        entry: ConfigEntry,
+        entry: CommonConfigEntry,
     ) -> None:
         """Binary sensor."""
-        self.entry: ConfigEntry = entry
+        self.entry: CommonConfigEntry = entry
         self.hass = hass
 
         self.translation_key = TRANSLATION_KEY
@@ -96,7 +96,7 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         self.remote_last_updated: datetime = dt_util.now()
         self.remote_pause: bool = False
 
-        self.shared: Shared = hass.data[DOMAIN][entry.entry_id]["shared"]
+        self.shared: Shared = entry.runtime_data.shared
 
         self.remote_binary_sensor_name: str = entry.options.get(CONF_MONITOR_ENTITY)
         self.main_on_binary_sensor_name: str = entry.options.get(

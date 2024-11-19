@@ -5,12 +5,12 @@ from __future__ import annotations
 import voluptuous as vol
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.entity_platform import EntityPlatform
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
+from . import CommonConfigEntry
 from .const import (
     DOMAIN,
     LOGGER,
@@ -32,10 +32,10 @@ class RemoteAcitvityMonitorMainOnBinarySensor(
     def __init__(
         self,
         hass: HomeAssistant,
-        entry: ConfigEntry,
+        entry: CommonConfigEntry,
     ) -> None:
         """Binary sensor indicating if the host is on."""
-        self.entry: ConfigEntry = entry
+        self.entry: CommonConfigEntry = entry
         self.hass = hass
 
         self.coordinator: DataUpdateCoordinator = DataUpdateCoordinator(

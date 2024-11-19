@@ -2,23 +2,34 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_COMPONENT_TYPE, DOMAIN, ComponentType
+from .const import CONF_COMPONENT_TYPE, ComponentType
 from .shared import Shared
 
 
 # ------------------------------------------------------------------
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+# ------------------------------------------------------------------
+@dataclass
+class CommonData:
+    """Common data."""
+
+    shared: Shared
+
+
+# The type alias needs to be suffixed with 'ConfigEntry'
+type CommonConfigEntry = ConfigEntry[CommonData]
+
+
+# ------------------------------------------------------------------
+async def async_setup_entry(hass: HomeAssistant, entry: CommonConfigEntry) -> bool:
     """Set up Remote activity monitor from a config entry."""
 
-    shared = Shared()
-
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
-        "shared": shared,
-    }
+    entry.runtime_data = CommonData(Shared())
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
@@ -36,7 +47,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 # ------------------------------------------------------------------
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: CommonConfigEntry) -> bool:
     """Unload a config entry."""
 
     match entry.options[CONF_COMPONENT_TYPE]:
@@ -51,7 +62,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 # ------------------------------------------------------------------
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+async def async_reload_entry(hass: HomeAssistant, entry: CommonConfigEntry) -> None:
     """Reload config entry."""
     await async_unload_entry(hass, entry)
     await async_setup_entry(hass, entry)
@@ -60,14 +71,12 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 # ------------------------------------------------------------------
 async def update_listener(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: CommonConfigEntry,
 ) -> None:
     """Reload on config entry update."""
 
-    shared: Shared = hass.data[DOMAIN][config_entry.entry_id]["shared"]
-
-    if shared.supress_update_listener:
-        shared.supress_update_listener = False
+    if config_entry.runtime_data.shared.supress_update_listener:
+        config_entry.runtime_data.shared.supress_update_listener = False
         return
 
     await hass.config_entries.async_reload(config_entry.entry_id)

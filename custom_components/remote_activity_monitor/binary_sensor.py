@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from . import CommonConfigEntry
 from .const import CONF_COMPONENT_TYPE, ComponentType
 from .main_binary_sensor import MainAcitvityMonitorBinarySensor
 from .main_on_binary_sensor import RemoteAcitvityMonitorMainOnBinarySensor
@@ -15,7 +15,7 @@ from .remote_binary_sensor import RemoteAcitvityMonitorBinarySensor
 # ------------------------------------------------------
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: CommonConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Entry for Remote activity monitor setup."""
