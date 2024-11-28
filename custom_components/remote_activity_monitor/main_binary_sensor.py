@@ -112,6 +112,7 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         self.main_last_updated: datetime = dt_util.now()
 
         self.duration_wait_update: timedelta = timedelta()
+        self.websocket_subscribe_trigger_retry_count: int = 0
 
         if (duration := entry.options.get(CONF_DURATION_WAIT_UPDATE, None)) is not None:
             self.duration_wait_update = timedelta(**duration)
@@ -447,8 +448,19 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
 
         LOGGER.debug("Host connection established, subscribing to trigger")
 
+        self.websocket_subscribe_trigger_retry_count = 0
+        await self.async_websocket_subscribe_trigger_event()
+
+        await self.async_websocket_update_main_on()
+
+    # ------------------------------------------------------------------
+    async def async_websocket_subscribe_trigger_event(self) -> None:
+        """Subscribe to trigger event."""
+
+        await asyncio.sleep(10)
+
         await self.websocket_connection.async_call(
-            self.async_websocket_handle_event_message,
+            self.async_websocket_handle_trigger_event_message,
             "subscribe_trigger",
             trigger={
                 "platform": "state",
@@ -459,16 +471,22 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
             },
         )
 
-        await self.async_websocket_update_main_on()
-
     # ------------------------------------------------------------------
-    async def async_websocket_handle_event_message(self, message: dict) -> None:
+    async def async_websocket_handle_trigger_event_message(self, message: dict) -> None:
         """Handle event from host."""
 
         match message["type"]:
             case "result":
                 if message["success"] is not True:
-                    LOGGER.error("Error on subcribe_trigger")
+                    self.websocket_subscribe_trigger_retry_count += 1
+
+                    if self.websocket_subscribe_trigger_retry_count < 5:
+                        LOGGER.error("Error on subcribe_trigger, wait and retry")
+                        await self.async_websocket_subscribe_trigger_event()
+                    else:
+                        LOGGER.error(
+                            "To many failed attemts to subcribe_trigger, aborting"
+                        )
 
             case "event":
                 to_state: dict = message["event"]["variables"]["trigger"]["to_state"]
