@@ -242,6 +242,8 @@ async def _validate_input_main_url(
         raise SchemaFlowError("invalid_auth") from None
     except ApiProblem:
         raise SchemaFlowError("cannot_connect") from None
+    except Exception:  # noqa: BLE001
+        raise SchemaFlowError("cannot_connect") from None
 
     if len(monitors) == 0:
         raise SchemaFlowError("no_monitors")

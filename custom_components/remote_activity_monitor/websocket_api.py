@@ -47,10 +47,10 @@ class RemoteWebsocketConnection:
         access_token: str,
         secure: bool = False,
         verify_ssl: bool = False,
-        on_connected: Callable[[], None] | None = None,
-        on_disconnected: Callable[[], None] | None = None,
-        on_connection_state_changed: Callable[[ConnectionStateType], None]
-        | None = None,
+        # on_connected: Callable[[], None] | None = None,
+        # on_disconnected: Callable[[], None] | None = None,
+        # on_connection_state_changed: Callable[[ConnectionStateType], None]
+        # | None = None,
     ) -> None:
         """Initialize the connection."""
         self._hass: HomeAssistant = hass
@@ -59,11 +59,16 @@ class RemoteWebsocketConnection:
         self._access_token: str = access_token
         self._secure: bool = secure
         self._verify_ssl: bool = verify_ssl
-        self._on_connected: Callable[[], None] | None = on_connected
-        self._on_disconnected: Callable[[], None] | None = on_disconnected
+        # self._on_connected: Callable[[], None] | None = on_connected
+        # self._on_disconnected: Callable[[], None] | None = on_disconnected
+        # self._on_connection_state_changed: (
+        #     Callable[[ConnectionStateType], None] | None
+        # ) = on_connection_state_changed
+        self._on_connected: Callable[[], None] | None = None
+        self._on_disconnected: Callable[[], None] | None = None
         self._on_connection_state_changed: (
             Callable[[ConnectionStateType], None] | None
-        ) = on_connection_state_changed
+        ) = None
 
         self.connection_state: ConnectionStateType = ConnectionStateType.STATE_INIT
 
@@ -74,7 +79,7 @@ class RemoteWebsocketConnection:
 
         self.__id: int = 1
 
-        self._background_tasks = set()
+        # self._background_tasks = set()
 
     # ------------------------------------------------------
     async def async_connection_state_changed_event(self, state: ConnectionStateType):
@@ -145,8 +150,8 @@ class RemoteWebsocketConnection:
 
         self._hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop_handler)
 
-        tmp_task = asyncio.ensure_future(self._async_recv())
-        self._background_tasks.add(tmp_task)
+        asyncio.ensure_future(self._async_recv())  # noqa: RUF006
+        # self._background_tasks.add(tmp_task)
 
         self._heartbeat_task = self._hass.loop.create_task(self._async_heartbeat_loop())
 
@@ -174,8 +179,8 @@ class RemoteWebsocketConnection:
                 LOGGER.warning("heartbeat failed")
 
                 # Schedule closing on event loop to avoid deadlock
-                tmp_task = asyncio.ensure_future(self._connection.close())
-                self._background_tasks.add(tmp_task)
+                asyncio.ensure_future(self._connection.close())  # noqa: RUF006
+                # self._background_tasks.add(tmp_task)
                 break
 
     # ------------------------------------------------------
@@ -236,7 +241,7 @@ class RemoteWebsocketConnection:
         self._heartbeat_task = None
 
         if not self._is_stopping:
-            tmp_task = asyncio.ensure_future(
+            asyncio.ensure_future(  # noqa: RUF006
                 self.async_connect(
                     self._on_connected,
                     self._on_disconnected,
@@ -244,7 +249,7 @@ class RemoteWebsocketConnection:
                 )
             )
             # todo: Skal background task nulstilles?
-            self._background_tasks.add(tmp_task)
+            # self._background_tasks.add(tmp_task)
 
     # ------------------------------------------------------
     async def _async_recv(self):

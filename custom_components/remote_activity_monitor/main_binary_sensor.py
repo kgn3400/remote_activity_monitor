@@ -66,7 +66,7 @@ from .const import (
     TRANSLATION_KEY_MAIN_MISSING_ENTITY,
 )
 from .entity import ComponentEntityMain
-from .rest_api import BadResponse, RestApi
+from .rest_api import ApiProblem, BadResponse, EndpointMissing, InvalidAuth, RestApi
 from .shared import Shared
 from .websocket_api import ConnectionStateType, RemoteWebsocketConnection
 
@@ -369,7 +369,7 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         )
 
     # ------------------------------------------------------------------
-    async def async_restapi_service_get_remote_entity(self) -> None:
+    async def async_restapi_service_get_remote_entity(self) -> bool:
         """Restapi service get remote entity."""
 
         MAX_RETRY_COUNT: int = 5
@@ -419,6 +419,8 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         """Call restapi service get remote entity."""
 
         try:
+            LOGGER.debug("Connecting to restapi to get remote entities")
+
             remote_entyties: list = (
                 await RestApi().async_post_service(
                     self.hass,
@@ -433,8 +435,11 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
                 )
             )["remotes"]
 
-        except BadResponse:
+        except (BadResponse, EndpointMissing, InvalidAuth, ApiProblem):
+            LOGGER.debug("Error connecting to restapi to get remote entities")
             return None
+
+        LOGGER.debug("Returned from restapi to get remote entities")
 
         return remote_entyties
 
@@ -457,7 +462,7 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
     async def async_websocket_subscribe_trigger_event(self) -> None:
         """Subscribe to trigger event."""
 
-        await asyncio.sleep(10)
+        await asyncio.sleep(5)
 
         await self.websocket_connection.async_call(
             self.async_websocket_handle_trigger_event_message,
