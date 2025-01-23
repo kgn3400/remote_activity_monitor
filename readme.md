@@ -21,21 +21,21 @@ Or click
 
 Choose whether it is a remote activity monitor integration or a main activity monitor integration which should be created. A remote activity monitor must always be created before creating a main activity monitor.
 
-<img src="https://github.com/kgn3400/remote_activity_monitor/blob/main/images/config-menu.png" width="400" height="auto" alt="Config">
+<img src="/assets/config-menu.png" width="400" height="auto" alt="Config">
 <br>
 
 On the remote Home Assistant, add the remote activity monitor integration. And select which entities to track.
 
 To access the remote Home Assistant, you need a Long-Lived Access Token. Generate a Long-Lived Access Token by logging into the remote Home Assistant, click on the [user profile icon](https://my.home-assistant.io/redirect/profile) and click on the security tab, then click "Create Token" under "Long-Lived Access Tokens". Copy the token and use it when creating the main activity monitor.
 
-<img src="https://github.com/kgn3400/remote_activity_monitor/blob/main/images/config-remote.png" width="400" height="auto" alt="Config">
+<img src="/assets/config-remote.png" width="400" height="auto" alt="Config">
 <br>
 
 Enter the remote host name or ip address and insert the Long-Lived Access Token that was generated on the remote host.
 
-<img src="https://github.com/kgn3400/remote_activity_monitor/blob/main/images/config-main-1.png" width="400" height="auto" alt="Config">
+<img src="/assets/config-main-1.png" width="400" height="auto" alt="Config">
 <br>
 
 Select the Remote activity monitor entity that you want to monitor on the remote host. Should there be any delay before marking the state as changed and the state to monitor.
 
-<img src="https://github.com/kgn3400/remote_activity_monitor/blob/main/images/config-main-2.png" width="400" height="auto" alt="Config">
+<img src="/assets/config-main-2.png" width="400" height="auto" alt="Config">
