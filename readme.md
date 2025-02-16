@@ -1,12 +1,23 @@
-# Remote activity monitor
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/kgn3400/remote_activity_monitor)
+<!-- markdownlint-disable MD041 -->
 ![GitHub all releases](https://img.shields.io/github/downloads/kgn3400/remote_activity_monitor/total)
 ![GitHub last commit](https://img.shields.io/github/last-commit/kgn3400/remote_activity_monitor)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/kgn3400/remote_activity_monitor)
 [![Validate% with hassfest](https://github.com/kgn3400/remote_activity_monitor/workflows/Validate%20with%20hassfest/badge.svg)](https://github.com/kgn3400/remote_activity_monitor/actions/workflows/hassfest.yaml)
 
+<img align="left" width="80" height="80" src="https://kgn3400.github.io/remote_activity_monitor/assets/icon.png" alt="App icon">
+
+# Remote activity monitor
+
 The Remote activity monitor allows you to monitor the status of a binary/switch sensor or a set of binary/switch sensors on a remote Home Assistant device.
+
+My use case was that I wanted to monitor an elderly family member and receive an alert if there had been no activity for a given period. A cheap and flexible solution was to install a Raspberry Pi with Home Assistant and some motion sensors.
+
+Additionally, the integration [Remote Home-Assistant](https://github.com/custom-components/remote_homeassistant), a script, and an automation were needed to achieve the desired functionality.
+
+Instead, it resulted in the custom integration Remote Activity Monitor, where everything is bundled into a user-friendly interface that is simple to use.
+
+## Installation
 
 For installation instructions, until the Remote activity monitor is part of HACS, [see this guide](https://hacs.xyz/docs/faq/custom_repositories).
 Or click
