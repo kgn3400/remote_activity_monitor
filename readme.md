@@ -9,6 +9,7 @@
 
 # Remote activity monitor
 
+<br/>
 The Remote activity monitor allows you to monitor the status of a binary/switch sensor or a set of binary/switch sensors on a remote Home Assistant device.
 
 My use case was that I wanted to monitor an elderly family member and receive an alert if there had been no activity for a given period. A cheap and flexible solution was to install a Raspberry Pi with Home Assistant and some motion sensors.
