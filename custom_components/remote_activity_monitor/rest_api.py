@@ -13,25 +13,49 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 class ApiProblem(exceptions.HomeAssistantError):
     """Error to indicate problem reaching API."""
 
+    def __str__(self):
+        """Return a human readable error."""
+        return "api_problem"
+
 
 class CannotConnect(exceptions.HomeAssistantError):
     """Error to indicate we cannot connect."""
+
+    def __str__(self):
+        """Return a human readable error."""
+        return "cannot_connect"
 
 
 class InvalidAuth(exceptions.HomeAssistantError):
     """Error to indicate there is invalid auth."""
 
+    def __str__(self):
+        """Return a human readable error."""
+        return "invalid_auth"
+
 
 class BadResponse(exceptions.HomeAssistantError):
     """Error to indicate a bad response was received."""
+
+    def __str__(self):
+        """Return a human readable error."""
+        return "bad_response"
 
 
 class UnsupportedVersion(exceptions.HomeAssistantError):
     """Error to indicate an unsupported version of Home Assistant."""
 
+    def __str__(self):
+        """Return a human readable error."""
+        return "unsupported_version"
+
 
 class EndpointMissing(exceptions.HomeAssistantError):
     """Error to indicate there is invalid auth."""
+
+    def __str__(self):
+        """Return a human readable error."""
+        return "endpoint_missing"
 
 
 # ------------------------------------------------------
@@ -54,7 +78,7 @@ class RestApi:
     ) -> list[dict[str, Any]] | None:
         """Get remote activity monitors."""
 
-        url = f'{"https" if secure else "http"}://{host}:{port}/api/services/{domain}/{service}{"?return_response=true" if return_response else ""}'
+        url = f"{'https' if secure else 'http'}://{host}:{port}/api/services/{domain}/{service}{'?return_response=true' if return_response else ''}"
 
         headers = {
             "Authorization": "Bearer " + access_token,
@@ -67,10 +91,8 @@ class RestApi:
 
             json = await resp.json()
 
-            if (
-                return_response
-                and not isinstance(json, dict)
-                or "service_response" not in json
+            if return_response and (
+                not isinstance(json, dict) or "service_response" not in json
             ):
                 raise BadResponse(f"Bad response data: {json}")
 
@@ -78,9 +100,11 @@ class RestApi:
 
     # ------------------------------------------------------
     def _check_resp_status(self, status: int) -> None:
+        if status == 401:
+            raise InvalidAuth
         if status == 404:
             raise EndpointMissing
         if 400 <= status < 500:
-            raise InvalidAuth
-        if status != 200:
+            raise CannotConnect
+        if status not in (200, 201):
             raise ApiProblem

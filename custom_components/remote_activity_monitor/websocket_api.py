@@ -6,7 +6,6 @@ from collections.abc import Callable
 import contextlib
 from enum import StrEnum
 import inspect
-from typing import Any
 
 import aiohttp
 from aiohttp import ClientWebSocketResponse
@@ -47,10 +46,6 @@ class RemoteWebsocketConnection:
         access_token: str,
         secure: bool = False,
         verify_ssl: bool = False,
-        # on_connected: Callable[[], None] | None = None,
-        # on_disconnected: Callable[[], None] | None = None,
-        # on_connection_state_changed: Callable[[ConnectionStateType], None]
-        # | None = None,
     ) -> None:
         """Initialize the connection."""
         self._hass: HomeAssistant = hass
@@ -59,15 +54,10 @@ class RemoteWebsocketConnection:
         self._access_token: str = access_token
         self._secure: bool = secure
         self._verify_ssl: bool = verify_ssl
-        # self._on_connected: Callable[[], None] | None = on_connected
-        # self._on_disconnected: Callable[[], None] | None = on_disconnected
-        # self._on_connection_state_changed: (
-        #     Callable[[ConnectionStateType], None] | None
-        # ) = on_connection_state_changed
         self._on_connected: Callable[[], None] | None = None
         self._on_disconnected: Callable[[], None] | None = None
         self._on_connection_state_changed: (
-            Callable[[ConnectionStateType], None] | None
+            Callable[[ConnectionStateType, str], None] | None
         ) = None
 
         self.connection_state: ConnectionStateType = ConnectionStateType.STATE_INIT
@@ -79,8 +69,6 @@ class RemoteWebsocketConnection:
 
         self.__id: int = 1
 
-        # self._background_tasks = set()
-
     # ------------------------------------------------------
     async def async_connection_state_changed_event(self, state: ConnectionStateType):
         """Report connection state and Change."""
@@ -89,9 +77,9 @@ class RemoteWebsocketConnection:
 
         if self._on_connection_state_changed is not None:
             if inspect.iscoroutinefunction(self._on_connection_state_changed):
-                await self._on_connection_state_changed(state)
+                await self._on_connection_state_changed(state, self._get_url())
             else:
-                self._on_connection_state_changed(state)
+                self._on_connection_state_changed(state, self._get_url())
 
     # ------------------------------------------------------
     @callback
@@ -103,17 +91,16 @@ class RemoteWebsocketConnection:
     # ------------------------------------------------------
     async def async_connect(
         self,
-        on_connected: Callable[[Any], Any] | None = None,
-        on_disconnected: Callable[[Any], Any] | None = None,
-        on_connection_state_changed: Callable[[Any], Any] | None = None,
+        on_connected: Callable[[], None] | None = None,
+        on_disconnected: Callable[[], None] | None = None,
+        on_connection_state_changed: Callable[[ConnectionStateType, str], None]
+        | None = None,
     ) -> None:
         """Connect to remote home-assistant websocket..."""
 
-        self._on_connected: Callable[[Any], Any] | None = on_connected
-        self._on_disconnected: Callable[[Any], Any] | None = on_disconnected
-        self._on_connection_state_changed: Callable[[Any], Any] | None = (
-            on_connection_state_changed
-        )
+        self._on_connected = on_connected
+        self._on_disconnected = on_disconnected
+        self._on_connection_state_changed = on_connection_state_changed
 
         # ------------------------------------------------------
         async def _async_stop_handler(event):
@@ -151,7 +138,6 @@ class RemoteWebsocketConnection:
         self._hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop_handler)
 
         asyncio.ensure_future(self._async_recv())  # noqa: RUF006
-        # self._background_tasks.add(tmp_task)
 
         self._heartbeat_task = self._hass.loop.create_task(self._async_heartbeat_loop())
 

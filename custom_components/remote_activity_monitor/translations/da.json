@@ -12,11 +12,11 @@
     "error": {
       "missing_selection": "Ingen enheder valgt",
       "api_problem": "Fejl ved serverrespons",
-      "cannot_connect": "Kunne ikke oprette forbindelse til serveren",
+      "cannot_connect": "Kunne ikke oprette forbindelse til fjernovervågning",
       "invalid_auth": "Ugyldige legitimationsoplysninger",
       "no_monitors": "Ingen aktive monitorer fundet",
       "unknown": "En ukendt fejl opstod",
-      "missing_endpoint": "Du skal installere integrationen til Fjernovervågning af aktivitet på den eksterne vært først"
+      "endpoint_missing": "Installer integrationen til Fjernovervågning af aktivitet på den eksterne vært først"
     },
     "step": {
       "user": {
@@ -65,7 +65,12 @@
     },
     "error": {
       "missing_selection": "Ingen enheder valgt",
-      "unknown": "Uventet fejl"
+      "api_problem": "Fejl ved serverrespons",
+      "cannot_connect": "Kunne ikke oprette forbindelse til fjernovervågning",
+      "invalid_auth": "Ugyldige legitimationsoplysninger",
+      "no_monitors": "Ingen aktive monitorer fundet",
+      "unknown": "En ukendt fejl opstod",
+      "endpoint_missing": "Installer integrationen til Fjernovervågning af aktivitet på den eksterne vært først"
     },
     "step": {
       "main": {
@@ -176,15 +181,35 @@
   },
   "issues": {
     "remote_missing_entity": {
-      "description": "Det ser ud til, at enheden `{entity}` enten er blevet slettet eller omdøbt, hvilket bruges i integrationen til fjernovervågning af aktivitet `{integration}`. \n\n Venligst ret denne fejl.",
+      "description": "Det ser ud til, at enheden `{entity}` enten er blevet slettet eller omdøbt, hvilket bruges i integrationen til fjernovervågning af aktivitet `{integration}`.",
       "title": "Fjernovervågning af aktivitet: Enhed slettet eller omdøbt"
     },
     "main_missing_entity": {
-      "description": "Det ser ud til, at enheden `{entity}` enten er blevet slettet eller omdøbt, hvilket bruges i hovedintegrationen til aktivitetsovervågning `{integration}`. \n\n Venligst ret denne fejl.",
+      "description": "Det ser ud til, at enheden `{entity}` enten er blevet slettet eller omdøbt, hvilket bruges i hovedintegrationen til aktivitetsovervågning `{integration}`.",
       "title": "Hovedovervågning monitor: Enhed slettet eller omdøbt"
     },
     "main_connection_error": {
-      "description": "Det ser ud til at der et problem med at forbinde til fjernovervågning enheden, hvilket bruges i hovedintegrationen til aktivitetsovervågning `{integration}`. \n\n Venligst ret denne fejl.",
+      "description": "Det ser ud til at der et problem med at forbinde til fjernovervågning enheden, hvilket bruges i hovedintegrationen til aktivitetsovervågning `{integration}`.",
+      "title": "Hovedovervågning monitor: Forbindelses fejl"
+    },
+    "main_invalid_auth": {
+      "description": "Det ser ud til at der et problem med hovedintegrationen til aktivitetsovervågning `{integration}`. \n\nFejl: Ugyldige token.",
+      "title": "Hovedovervågning monitor: Ugyldige token"
+    },
+    "main_cannot_connect": {
+      "description": "Det ser ud til at der et problem med hovedintegrationen til aktivitetsovervågning `{integration}`. \n\nFejl: Kunne ikke oprette forbindelse til fjernovervågning.",
+      "title": "Hovedovervågning monitor: Kunne ikke oprette forbindelse"
+    },
+    "main_endpoint_missing": {
+      "description": "Det ser ud til at der et problem med hovedintegrationen til aktivitetsovervågning `{integration}`. \n\nFejl: Installer integrationen til Fjernovervågning af aktivitet på den eksterne vært først.",
+      "title": "Hovedovervågning monitor: Manglende endpoint"
+    },
+    "main_unknown": {
+      "description": "Det ser ud til at der et problem med hovedintegrationen til aktivitetsovervågning `{integration}`. \n\nFejl: Ukendt fejl.",
+      "title": "Hovedovervågning monitor: Ukendt fejl"
+    },
+    "main_websocket_reconnecting": {
+      "description": "Det ser ud til at der et problem med hovedintegrationen til aktivitetsovervågning `{integration}`. \n\nFejl: Kan ikke forbinde til {url}.",
       "title": "Hovedovervågning monitor: Forbindelses fejl"
     }
   }

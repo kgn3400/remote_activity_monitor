@@ -62,11 +62,10 @@ from .const import (
     SERVICE_UPDATE_MAIN_OPTIONS,
     STATE_BOTH,
     TRANSLATION_KEY,
-    TRANSLATION_KEY_MAIN_CONNECTION_ERROR,
     TRANSLATION_KEY_MAIN_MISSING_ENTITY,
 )
 from .entity import ComponentEntityMain
-from .rest_api import ApiProblem, BadResponse, EndpointMissing, InvalidAuth, RestApi
+from .rest_api import CannotConnect, EndpointMissing, InvalidAuth, RestApi
 from .shared import Shared
 from .websocket_api import ConnectionStateType, RemoteWebsocketConnection
 
@@ -113,6 +112,8 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
 
         self.duration_wait_update: timedelta = timedelta()
         self.websocket_subscribe_trigger_retry_count: int = 0
+        self.websocket_reconnecting_count: int = 0
+        self.websocket_reconnecting_issue_id: str = ""
 
         if (duration := entry.options.get(CONF_DURATION_WAIT_UPDATE, None)) is not None:
             self.duration_wait_update = timedelta(**duration)
@@ -335,7 +336,9 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
 
         if await self.async_restapi_service_get_remote_entity():
             await self.websocket_connection.async_connect(
-                self.async_websocket_on_connected
+                self.async_websocket_on_connected,
+                None,
+                self.async_websocket_on_connection_state_changed,
             )
 
     # ------------------------------------------------------------------
@@ -373,21 +376,36 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         """Restapi service get remote entity."""
 
         MAX_RETRY_COUNT: int = 5
+        last_err: str = ""
 
         # Retry loop
         for loop_count in range(MAX_RETRY_COUNT):
-            remote_entyties: list = (
-                await self.async_call_restapi_service_get_remote_entity()
-            )
+            try:
+                remote_entyties: list = (
+                    await self.async_call_restapi_service_get_remote_entity()
+                )
 
-            if remote_entyties is not None:
-                break
+                if remote_entyties is not None:
+                    break
+
+            except (
+                # BadResponse,
+                EndpointMissing,
+                InvalidAuth,
+                # ApiProblem,
+                CannotConnect,
+            ) as err:
+                # LOGGER.error("Error connecting to restapi to get remote entities", err)
+                last_err = str(err)
+
+            except Exception:  # noqa: BLE001
+                last_err = "cannot_connect"
 
             # If this is the last retry, create an issue
             if loop_count == (MAX_RETRY_COUNT - 1):
                 await self.async_create_issue_entity(
                     self.remote_binary_sensor_name,
-                    TRANSLATION_KEY_MAIN_CONNECTION_ERROR,
+                    "main_" + last_err,
                 )
 
                 return False
@@ -418,30 +436,60 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
     async def async_call_restapi_service_get_remote_entity(self) -> list | None:
         """Call restapi service get remote entity."""
 
-        try:
-            LOGGER.debug("Connecting to restapi to get remote entities")
+        LOGGER.debug("Connecting to restapi to get remote entities")
 
-            remote_entyties: list = (
-                await RestApi().async_post_service(
-                    self.hass,
-                    self.entry.options.get(CONF_HOST),
-                    self.entry.options.get(CONF_PORT),
-                    self.entry.options.get(CONF_ACCESS_TOKEN),
-                    self.entry.options.get(CONF_SECURE),
-                    self.entry.options.get(CONF_VERIFY_SSL),
-                    DOMAIN,
-                    SERVICE_GET_REMOTE_ENTITIES,
-                    True,
-                )
-            )["remotes"]
+        remote_entyties: list = None
 
-        except (BadResponse, EndpointMissing, InvalidAuth, ApiProblem):
-            LOGGER.debug("Error connecting to restapi to get remote entities")
-            return None
+        remote_entyties: list = (
+            await RestApi().async_post_service(
+                self.hass,
+                self.entry.options.get(CONF_HOST),
+                self.entry.options.get(CONF_PORT),
+                self.entry.options.get(CONF_ACCESS_TOKEN),
+                self.entry.options.get(CONF_SECURE),
+                self.entry.options.get(CONF_VERIFY_SSL),
+                DOMAIN,
+                SERVICE_GET_REMOTE_ENTITIES,
+                True,
+            )
+        )["remotes"]
 
         LOGGER.debug("Returned from restapi to get remote entities")
 
         return remote_entyties
+
+    # ------------------------------------------------------------------
+    async def async_websocket_on_connection_state_changed(
+        self, state: ConnectionStateType, url: str
+    ) -> None:
+        """Host connection state changed."""
+
+        LOGGER.debug(f"Host connection state changed to {state.name} for {url}")
+
+        match state:
+            case ConnectionStateType.STATE_RECONNECTING:
+                self.websocket_reconnecting_count += 1
+
+                if (
+                    self.websocket_reconnecting_count >= 60  # Wait 10 minutes
+                    and self.websocket_reconnecting_issue_id == ""
+                ):
+                    self.websocket_reconnecting_issue_id = (
+                        await self.async_create_issue(
+                            "main_websocket_reconnecting",
+                            {
+                                "entity": self.remote_binary_sensor_name,
+                                "integration": self.entity_id,
+                                "url": url,
+                            },
+                        )
+                    )
+
+            case ConnectionStateType.STATE_CONNECTED:
+                if self.websocket_reconnecting_issue_id != "":
+                    await self.async_delete_issue(self.websocket_reconnecting_issue_id)
+                self.websocket_reconnecting_count = 0
+                self.websocket_reconnecting_issue_id = ""
 
     # ------------------------------------------------------------------
     async def async_websocket_on_connected(self) -> None:
@@ -545,22 +593,43 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
     # ------------------------------------------------------------------
     async def async_create_issue_entity(
         self, entity_id: str, translation_key: str
-    ) -> None:
+    ) -> str:
         """Create issue on entity."""
 
-        ir.async_create_issue(
-            self.hass,
-            DOMAIN,
-            DOMAIN_NAME + datetime.now().isoformat(),
-            issue_domain=DOMAIN,
-            is_fixable=False,
-            severity=ir.IssueSeverity.WARNING,
-            translation_key=translation_key,
-            translation_placeholders={
+        return await self.async_create_issue(
+            translation_key,
+            {
                 "entity": entity_id,
                 "integration": self.entity_id,
             },
         )
+
+    # ------------------------------------------------------------------
+    async def async_create_issue(
+        self, translation_key: str, translation_placeholders: dict | None = None
+    ) -> str:
+        """Create issue."""
+
+        tmp_issue_id: str = DOMAIN_NAME + datetime.now().isoformat()
+
+        ir.async_create_issue(
+            self.hass,
+            DOMAIN,
+            tmp_issue_id,
+            issue_domain=DOMAIN,
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key=translation_key,
+            translation_placeholders=translation_placeholders,
+        )
+
+        return tmp_issue_id
+
+    # ------------------------------------------------------------------
+    async def async_delete_issue(self, issue_id: str) -> None:
+        """Delete issue."""
+
+        ir.async_delete_issue(self.hass, DOMAIN, DOMAIN_NAME + issue_id)
 
     # ------------------------------------------------------
     @property

@@ -11,12 +11,12 @@
     },
     "error": {
       "missing_selection": "No entities selected",
-      "api_problem": "Bad response from server",
-      "cannot_connect": "Failed to connect to server",
+      "api_problem": "Bad response from the Remote activity monitor",
+      "cannot_connect": "Failed to connect to the Remote activity monitor",
       "invalid_auth": "Invalid credentials",
       "no_monitors": "No active monitors found",
       "unknown": "An unknown error occurred",
-      "missing_endpoint": "Install Remote activity monitor integration on the remote Home assistant first"
+      "endpoint_missing": "Install Remote activity monitor integration on the remote Home assistant first"
     },
     "step": {
       "user": {
@@ -64,6 +64,11 @@
       "already_configured": "Device is already configured"
     },
     "error": {
+      "api_problem": "Bad response from the Remote activity monitor",
+      "cannot_connect": "Failed to connect to the Remote activity monitor",
+      "invalid_auth": "Invalid credentials",
+      "no_monitors": "No active monitors found",
+      "endpoint_missing": "Install Remote activity monitor integration on the remote Home assistant first",
       "missing_selection": "No entities selected",
       "unknown": "Unexpected error"
     },
@@ -176,16 +181,36 @@
   },
   "issues": {
     "remote_missing_entity": {
-      "description": "It looks like either entity `{entity}` has been deleted or renamed, which are used in Remote activity monitor integration `{integration}`. \n\n Please fix this problem.",
+      "description": "It looks like either entity `{entity}` has been deleted or renamed, which are used in Remote activity monitor integration `{integration}`",
       "title": "Remote activity monitor: Entity deleted or renamed"
     },
     "main_missing_entity": {
-      "description": "It looks like either entity `{entity}` has been deleted or renamed, which are used in main activity monitor integration `{integration}`. \n\n Please fix this problem.",
+      "description": "It looks like either entity `{entity}` has been deleted or renamed, which are used in main activity monitor integration `{integration}`.",
       "title": "Main activity monitor: Entity deleted or renamed"
     },
     "main_connection_error": {
-      "description": "It looks like there is a problem connecting to the remote activity monitor, which are used in main activity monitor integration `{integration}`. \n\n Please fix this problem.",
+      "description": "It looks like there is a problem connecting to the remote activity monitor, which are used in main activity monitor integration `{integration}`.",
       "title": "Main activity monitor: Connection error"
+    },
+    "main_invalid_auth": {
+      "description": "It looks like there is a problem with main activity monitor integration `{integration}`. \n\nError: Invalid token.",
+      "title": "Main activity monitor: Invalid token"
+    },
+    "main_cannot_connect": {
+      "description": "It looks like there is a problem with main activity monitor integration `{integration}`. \n\nError: Failed to connect to the Remote activity monitor.",
+      "title": "Main activity monitor: Failed to connect"
+    },
+    "main_endpoint_missing": {
+      "description": "It looks like there is a problem with main activity monitor integration `{integration}`. \n\nError: Install Remote activity monitor integration on the remote Home assistant.",
+      "title": "Main activity monitor: Endpoint missing"
+    },
+    "main_unknown": {
+      "description": "It looks like there is a problem with main activity monitor integration `{integration}`. \n\nError: An unknown error occurred.",
+      "title": "Main activity monitor: An unknown error occurred"
+    },
+    "main_websocket_reconnecting": {
+      "description": "It looks like there is a problem with main activity monitor integration `{integration}`. \n\nError: Failed to connect {url}.",
+      "title": "Main activity monitor: Failed to connect"
     }
   }
 }

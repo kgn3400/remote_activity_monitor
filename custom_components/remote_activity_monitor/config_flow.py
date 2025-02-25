@@ -52,7 +52,7 @@ from .const import (
     STATE_BOTH,
     TRANSLATION_KEY_STATE_MONTOR_TYPE,
 )
-from .rest_api import ApiProblem, EndpointMissing, RestApi
+from .rest_api import CannotConnect, EndpointMissing, RestApi
 
 
 # ------------------------------------------------------------------
@@ -71,6 +71,7 @@ class StepType(StrEnum):
 
     CONFIG = "config"
     OPTIONS = "options"
+    OPTIONS_URL = "options_url"
 
 
 # ------------------------------------------------------------------
@@ -108,13 +109,15 @@ async def _create_form(
 ) -> vol.Schema:
     """Create a form for step/option."""
 
-    CONFIG_NAME = {
+    tmp_monitors: list[dict[str, Any]] = []
+
+    CONFIG_MAIN_NAME = {
         vol.Required(
             CONF_NAME,
         ): TextSelector(),
     }
 
-    CONFIG_URL_TOKEN = {
+    CONFIG_MAIN_URL_TOKEN = {
         vol.Required(CONF_HOST, default=handler.options.get(CONF_HOST, "")): str,
         vol.Required(CONF_PORT, default=handler.options.get(CONF_PORT, 8123)): int,
         vol.Required(
@@ -192,19 +195,27 @@ async def _create_form(
                         }
                     )
 
+        case StepType.OPTIONS_URL:
+            match handler.options.get(CONF_COMPONENT_TYPE, ComponentType.MAIN):
+                case ComponentType.MAIN:
+                    return vol.Schema(
+                        {
+                            **CONFIG_MAIN_URL_TOKEN,
+                        }
+                    )
         case StepType.CONFIG | _:
             match handler.options.get(CONF_COMPONENT_TYPE, ComponentType.MAIN):
                 case ComponentType.MAIN:
                     return vol.Schema(
                         {
-                            **CONFIG_NAME,
-                            **CONFIG_URL_TOKEN,
+                            **CONFIG_MAIN_NAME,
+                            **CONFIG_MAIN_URL_TOKEN,
                         }
                     )
                 case ComponentType.REMOTE:
                     return vol.Schema(
                         {
-                            **CONFIG_NAME,
+                            **CONFIG_MAIN_NAME,
                             **CONFIG_REMOTE_OPTIONS_ENTITIES,
                         }
                     )
@@ -236,12 +247,15 @@ async def _validate_input_main_url(
             handler, user_input
         )
 
-    except EndpointMissing:
-        raise SchemaFlowError("missing_endpoint") from None
-    except InvalidAuth:
-        raise SchemaFlowError("invalid_auth") from None
-    except ApiProblem:
-        raise SchemaFlowError("cannot_connect") from None
+    except (
+        # BadResponse,
+        EndpointMissing,
+        InvalidAuth,
+        # ApiProblem,
+        CannotConnect,
+    ) as err:
+        raise SchemaFlowError(str(err)) from None
+
     except Exception:  # noqa: BLE001
         raise SchemaFlowError("cannot_connect") from None
 
@@ -325,6 +339,18 @@ async def options_main_component_schema(handler: SchemaCommonFlowHandler) -> vol
     )
 
 
+# ------------------------------------------------------------------
+async def options_url_main_component_schema(
+    handler: SchemaCommonFlowHandler,
+) -> vol.Schema:
+    """Return schema for the sensor config step."""
+    handler.options[CONF_COMPONENT_TYPE] = ComponentType.MAIN
+    return await _create_form(
+        handler,
+        step=StepType.OPTIONS_URL,
+    )
+
+
 CONFIG_FLOW = {
     "user": SchemaFlowMenuStep(MENU_OPTIONS),
     ComponentType.MAIN: SchemaFlowFormStep(
@@ -346,6 +372,11 @@ CONFIG_FLOW = {
 OPTIONS_FLOW = {
     "init": SchemaFlowFormStep(next_step=choose_options_step),
     ComponentType.MAIN: SchemaFlowFormStep(
+        options_url_main_component_schema,
+        validate_user_input=_validate_input_main_url,
+        next_step="options_main_options",
+    ),
+    "options_main_options": SchemaFlowFormStep(
         options_main_component_schema,
         validate_user_input=_validate_input_main,
     ),
