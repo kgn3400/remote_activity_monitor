@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 import voluptuous as vol
 
 from homeassistant.auth.providers.homeassistant import InvalidAuth
-from homeassistant.config_entries import ConfigFlowResult
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import (
     CONF_ACCESS_TOKEN,
     CONF_HOST,
@@ -438,7 +438,6 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
     # ------------------------------------------------------------------
     def async_config_entry_title(self, options: Mapping[str, Any]) -> str:
         """Return config entry title."""
-
         return cast(str, options[CONF_NAME])
 
     # ------------------------------------------------------------------
@@ -449,3 +448,18 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
         The options parameter contains config entry options, which is the union of user
         input from the config flow steps.
         """
+
+    # ------------------------------------------------------------------
+    @callback
+    def async_create_entry(
+        self,
+        data: Mapping[str, Any],
+        **kwargs: Any,
+    ) -> ConfigFlowResult:
+        """Finish config flow and create a config entry."""
+
+        if self.init_step == "ignore":
+            self.async_config_flow_finished(data)
+            return ConfigFlow.async_create_entry(self, data={}, options=data, **kwargs)
+
+        return super().async_create_entry(data, **kwargs)
