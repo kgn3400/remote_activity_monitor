@@ -1,6 +1,7 @@
 """Rest api connection to Home Assistant."""
 # borrowed from https://github.com/custom-components/remote_homeassistant
 
+import asyncio
 from typing import Any
 
 from aiohttp import ClientSession
@@ -75,8 +76,27 @@ class RestApi:
         domain: str,
         service: str,
         return_response: bool = False,
+        retry: int = 0,
+        retry_delay: int = 0,
     ) -> list[dict[str, Any]] | None:
-        """Get remote activity monitors."""
+        """Post to hass rest api."""
+
+        # -------------------------
+        async def async_post() -> list[dict[str, Any]] | None:
+            async with session.post(url, headers=headers) as resp:
+                self._check_resp_status(resp.status)
+
+                json = await resp.json()
+
+                if return_response and (
+                    not isinstance(json, dict) or "service_response" not in json
+                ):
+                    raise BadResponse(f"Bad response data: {json}")
+            return json["service_response"] if return_response else None
+
+        # -------------------------
+
+        retry_count: int = retry if retry > 0 else 1
 
         url = f"{'https' if secure else 'http'}://{host}:{port}/api/services/{domain}/{service}{'?return_response=true' if return_response else ''}"
 
@@ -86,17 +106,30 @@ class RestApi:
         }
         session: ClientSession = async_get_clientsession(hass, verify_ssl)
 
-        async with session.post(url, headers=headers) as resp:
-            self._check_resp_status(resp.status)
+        for loop_count in range(retry_count):
+            try:
+                service_resp = await async_post()
+                break
 
-            json = await resp.json()
+            except (
+                # BadResponse,
+                EndpointMissing,
+                InvalidAuth,
+                # ApiProblem,
+                CannotConnect,
+            ) as err:
+                last_err = err
 
-            if return_response and (
-                not isinstance(json, dict) or "service_response" not in json
-            ):
-                raise BadResponse(f"Bad response data: {json}")
+            except Exception:  # noqa: BLE001
+                last_err = CannotConnect()
 
-            return json["service_response"] if return_response else None
+            # If this is the last retry, create an issue
+            if loop_count == (retry_count - 1):
+                raise last_err
+
+            await asyncio.sleep(retry_delay)
+
+        return service_resp
 
     # ------------------------------------------------------
     def _check_resp_status(self, status: int) -> None:

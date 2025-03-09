@@ -21,6 +21,7 @@ from homeassistant.helpers.event import (
     EventStateChangedData,
     async_track_state_change_event,
 )
+from homeassistant.helpers.instance_id import async_get as async_get_instance_id
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
@@ -104,6 +105,7 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
                         "entity_id": item.entity_id,
                         "state": state.state,
                         "last_updated": state.last_updated.isoformat(),
+                        "hass_uuid": await async_get_instance_id(self.hass),
                     }
                 )
 

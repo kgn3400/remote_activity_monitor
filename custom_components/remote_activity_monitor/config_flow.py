@@ -5,10 +5,12 @@ from __future__ import annotations
 from collections.abc import Mapping
 from enum import StrEnum
 from typing import Any, cast
+from urllib.parse import urlparse
 
 import voluptuous as vol
 
 from homeassistant.auth.providers.homeassistant import InvalidAuth
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import (
     CONF_ACCESS_TOKEN,
     CONF_HOST,
@@ -20,6 +22,7 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import callback
+from homeassistant.helpers.instance_id import async_get
 from homeassistant.helpers.schema_config_entry_flow import (
     SchemaCommonFlowHandler,
     SchemaConfigFlowHandler,
@@ -38,6 +41,7 @@ from homeassistant.helpers.selector import (
     SelectSelectorMode,
     TextSelector,
 )
+from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
 from .const import (
     CONF_ALL_ENTITIES_ON,
@@ -48,6 +52,7 @@ from .const import (
     CONF_MONITOR_STATE_CHANGED_TYPE,
     CONF_SECURE,
     DOMAIN,
+    LOGGER,
     SERVICE_GET_REMOTE_ENTITIES,
     STATE_BOTH,
     TRANSLATION_KEY_STATE_MONTOR_TYPE,
@@ -117,9 +122,12 @@ async def _create_form(
         ): TextSelector(),
     }
 
+    tmp_host: str = handler.parent_handler.__dict__.get("_host", "")
+    tmp_port: int = handler.parent_handler.__dict__.get("_port", 8123)
+
     CONFIG_MAIN_URL_TOKEN = {
-        vol.Required(CONF_HOST, default=handler.options.get(CONF_HOST, "")): str,
-        vol.Required(CONF_PORT, default=handler.options.get(CONF_PORT, 8123)): int,
+        vol.Required(CONF_HOST, default=handler.options.get(CONF_HOST, tmp_host)): str,
+        vol.Required(CONF_PORT, default=handler.options.get(CONF_PORT, tmp_port)): int,
         vol.Required(
             CONF_ACCESS_TOKEN, default=handler.options.get(CONF_ACCESS_TOKEN, "")
         ): str,
@@ -242,6 +250,9 @@ async def _validate_input_main_url(
 ) -> dict[str, Any]:
     """Validate user input for main integration."""
 
+    if len(user_input) == 0:
+        raise SchemaFlowError("missing_input")
+
     try:
         monitors: list[dict[str, Any]] = await _async_create_monitor_list(
             handler, user_input
@@ -256,7 +267,8 @@ async def _validate_input_main_url(
     ) as err:
         raise SchemaFlowError(str(err)) from None
 
-    except Exception:  # noqa: BLE001
+    except Exception as err:  # noqa: BLE001
+        LOGGER.debug("Error: %s", err)
         raise SchemaFlowError("cannot_connect") from None
 
     if len(monitors) == 0:
@@ -395,6 +407,35 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
     config_flow = CONFIG_FLOW
     options_flow = OPTIONS_FLOW
 
+    # ------------------------------------------------------------------
+    async def async_step_zeroconf(
+        self, discovery_info: ZeroconfServiceInfo
+    ) -> ConfigFlowResult:
+        """Handle instance discovered via zeroconf."""
+
+        properties = discovery_info.properties
+        port = discovery_info.port
+        uuid = properties["uuid"]
+
+        await self.async_set_unique_id(uuid)
+        self._abort_if_unique_id_configured()
+
+        if await async_get(self.hass) == uuid:
+            return self.async_abort(reason="already_configured")
+
+        url = properties.get("internal_url")
+        if not url:
+            url = properties.get("base_url")
+        url = urlparse(url)
+
+        self.context["identifier"] = self.unique_id
+        self.context["title_placeholders"] = {"name": properties["location_name"]}
+        self._host = url.hostname
+        self._port = port
+
+        return await self._common_handler.async_step(ComponentType.MAIN, {})
+
+    # ------------------------------------------------------------------
     def async_config_entry_title(self, options: Mapping[str, Any]) -> str:
         """Return config entry title."""
 

@@ -375,42 +375,47 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
     async def async_restapi_service_get_remote_entity(self) -> bool:
         """Restapi service get remote entity."""
 
-        MAX_RETRY_COUNT: int = 5
         last_err: str = ""
 
-        # Retry loop
-        for loop_count in range(MAX_RETRY_COUNT):
-            try:
-                remote_entyties: list = (
-                    await self.async_call_restapi_service_get_remote_entity()
+        try:
+            remote_entyties: list = None
+
+            remote_entyties: list = (
+                await RestApi().async_post_service(
+                    self.hass,
+                    self.entry.options.get(CONF_HOST),
+                    self.entry.options.get(CONF_PORT),
+                    self.entry.options.get(CONF_ACCESS_TOKEN),
+                    self.entry.options.get(CONF_SECURE),
+                    self.entry.options.get(CONF_VERIFY_SSL),
+                    DOMAIN,
+                    SERVICE_GET_REMOTE_ENTITIES,
+                    True,
+                    5,
+                    10,
                 )
+            )["remotes"]
 
-                if remote_entyties is not None:
-                    break
+        except (
+            # BadResponse,
+            EndpointMissing,
+            InvalidAuth,
+            # ApiProblem,
+            CannotConnect,
+        ) as err:
+            # LOGGER.error("Error connecting to restapi to get remote entities", err)
+            last_err = str(err)
 
-            except (
-                # BadResponse,
-                EndpointMissing,
-                InvalidAuth,
-                # ApiProblem,
-                CannotConnect,
-            ) as err:
-                # LOGGER.error("Error connecting to restapi to get remote entities", err)
-                last_err = str(err)
+        except Exception:  # noqa: BLE001
+            last_err = str(CannotConnect)  # "cannot_connect"
 
-            except Exception:  # noqa: BLE001
-                last_err = "cannot_connect"
+        if last_err != "":
+            await self.async_create_issue_entity(
+                self.remote_binary_sensor_name,
+                "main_" + last_err,
+            )
 
-            # If this is the last retry, create an issue
-            if loop_count == (MAX_RETRY_COUNT - 1):
-                await self.async_create_issue_entity(
-                    self.remote_binary_sensor_name,
-                    "main_" + last_err,
-                )
-
-                return False
-
-            await asyncio.sleep(10)
+            return False
 
         for remote_entity in remote_entyties:
             if remote_entity["entity_id"] == self.remote_binary_sensor_name:
@@ -431,32 +436,6 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
         )
 
         return False
-
-    # ------------------------------------------------------------------
-    async def async_call_restapi_service_get_remote_entity(self) -> list | None:
-        """Call restapi service get remote entity."""
-
-        LOGGER.debug("Connecting to restapi to get remote entities")
-
-        remote_entyties: list = None
-
-        remote_entyties: list = (
-            await RestApi().async_post_service(
-                self.hass,
-                self.entry.options.get(CONF_HOST),
-                self.entry.options.get(CONF_PORT),
-                self.entry.options.get(CONF_ACCESS_TOKEN),
-                self.entry.options.get(CONF_SECURE),
-                self.entry.options.get(CONF_VERIFY_SSL),
-                DOMAIN,
-                SERVICE_GET_REMOTE_ENTITIES,
-                True,
-            )
-        )["remotes"]
-
-        LOGGER.debug("Returned from restapi to get remote entities")
-
-        return remote_entyties
 
     # ------------------------------------------------------------------
     async def async_websocket_on_connection_state_changed(
@@ -651,6 +630,9 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
             str: Unique id
 
         """
+
+        if self.entry.unique_id is not None and self.entry.unique_id != "":
+            return self.entry.unique_id
 
         return self.entry.entry_id
 

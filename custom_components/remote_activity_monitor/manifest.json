@@ -12,6 +12,8 @@
   "issue_tracker": "https://github.com/kgn3400/remote_activity_monitor/issues",
   "requirements": [],
   "ssdp": [],
-  "version": "1.0.18",
-  "zeroconf": []
+  "version": "1.0.19",
+  "zeroconf": [
+    "_home-assistant._tcp.local."
+  ]
 }
