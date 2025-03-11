@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -33,8 +33,8 @@ class ComponentEntityRemote(CoordinatorEntity[DataUpdateCoordinator], Entity):
         """Initialize the remote activity monitor entity."""
         super().__init__(coordinator=coordinator)
         self._attr_device_info = DeviceInfo(
-            entry_type=DeviceEntryType.SERVICE,
-            identifiers={(DOMAIN, REMOTE_DOMAIN_NAME)},
+            # entry_type=DeviceEntryType.SERVICE,
+            identifiers={(DOMAIN, entry.entry_id)},
             manufacturer="KGN",
             suggested_area="",
             sw_version=SW_VERSION,
@@ -56,8 +56,8 @@ class ComponentEntityMain(CoordinatorEntity[DataUpdateCoordinator], Entity):
         """Initialize the main activity monitor entity."""
         super().__init__(coordinator=coordinator)
         self._attr_device_info = DeviceInfo(
-            entry_type=DeviceEntryType.SERVICE,
-            identifiers={(DOMAIN, MAIN_DOMAIN_NAME)},
+            # entry_type=DeviceEntryType.SERVICE,
+            identifiers={(DOMAIN, entry.entry_id)},
             manufacturer="KGN",
             suggested_area="",
             sw_version=SW_VERSION,

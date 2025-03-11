@@ -264,7 +264,11 @@ class RemoteAcitvityMonitorBinarySensor(ComponentEntityRemote, BinarySensorEntit
 
         """
 
-        return self.entry.entry_id
+        return (
+            self.entry.unique_id
+            if self.entry.unique_id is not None
+            else self.entry.entry_id
+        )
 
     # ------------------------------------------------------
     @property

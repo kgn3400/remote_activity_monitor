@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 import voluptuous as vol
 
 from homeassistant.auth.providers.homeassistant import InvalidAuth
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.config_entries import SOURCE_IGNORE, ConfigFlow, ConfigFlowResult
 from homeassistant.const import (
     CONF_ACCESS_TOKEN,
     CONF_HOST,
@@ -42,6 +42,7 @@ from homeassistant.helpers.selector import (
     TextSelector,
 )
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
+from homeassistant.util.uuid import random_uuid_hex
 
 from .const import (
     CONF_ALL_ENTITIES_ON,
@@ -301,6 +302,11 @@ async def config_remote_component_schema(
     handler: SchemaCommonFlowHandler,
 ) -> vol.Schema:
     """Return schema for the sensor config step."""
+
+    if handler.parent_handler.unique_id is None:
+        await handler.parent_handler.async_set_unique_id(random_uuid_hex())
+        handler.parent_handler._abort_if_unique_id_configured()  # noqa: SLF001
+
     handler.options[CONF_COMPONENT_TYPE] = ComponentType.REMOTE
     return await _create_form(
         handler,
@@ -311,6 +317,11 @@ async def config_remote_component_schema(
 # ------------------------------------------------------------------
 async def config_main_component_schema(handler: SchemaCommonFlowHandler) -> vol.Schema:
     """Return schema for the sensor config step."""
+
+    if handler.parent_handler.unique_id is None:
+        await handler.parent_handler.async_set_unique_id(random_uuid_hex())
+        handler.parent_handler._abort_if_unique_id_configured()  # noqa: SLF001
+
     handler.options[CONF_COMPONENT_TYPE] = ComponentType.MAIN
     return await _create_form(
         handler,
@@ -433,6 +444,7 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
         self._host = url.hostname
         self._port = port
 
+        # return await self._async_step(ComponentType.MAIN)
         return await self._common_handler.async_step(ComponentType.MAIN, {})
 
     # ------------------------------------------------------------------
@@ -458,7 +470,7 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Finish config flow and create a config entry."""
 
-        if self.init_step == "ignore":
+        if self.source == SOURCE_IGNORE:
             self.async_config_flow_finished(data)
             return ConfigFlow.async_create_entry(self, data={}, options=data, **kwargs)
 

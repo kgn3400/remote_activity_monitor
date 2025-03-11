@@ -55,7 +55,7 @@ class RemotePauseSwitch(SwitchEntity):
 
         self._attr_device_info = DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
-            identifiers={(DOMAIN, REMOTE_DOMAIN_NAME)},
+            identifiers={(DOMAIN, entry.entry_id)},
             manufacturer="KGN",
             suggested_area="",
             sw_version=SW_VERSION,
@@ -124,7 +124,7 @@ class MainPauseSwitch(SwitchEntity):
 
         self._attr_device_info = DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
-            identifiers={(DOMAIN, MAIN_DOMAIN_NAME)},
+            identifiers={(DOMAIN, entry.entry_id)},
             manufacturer="KGN",
             suggested_area="",
             sw_version=SW_VERSION,

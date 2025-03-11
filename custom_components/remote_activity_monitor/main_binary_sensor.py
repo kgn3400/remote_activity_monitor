@@ -631,10 +631,11 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
 
         """
 
-        if self.entry.unique_id is not None and self.entry.unique_id != "":
-            return self.entry.unique_id
-
-        return self.entry.entry_id
+        return (
+            self.entry.unique_id
+            if self.entry.unique_id is not None
+            else self.entry.entry_id
+        )
 
     # ------------------------------------------------------
     @property
