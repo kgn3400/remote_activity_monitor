@@ -1,7 +1,6 @@
 """Rest api connection to Home Assistant."""
 # borrowed from https://github.com/custom-components/remote_homeassistant
 
-import asyncio
 from typing import Any
 
 from aiohttp import ClientSession
@@ -9,6 +8,8 @@ from aiohttp import ClientSession
 from homeassistant import exceptions
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+from .hass_util import handle_retries
 
 
 class ApiProblem(exceptions.HomeAssistantError):
@@ -76,12 +77,11 @@ class RestApi:
         domain: str,
         service: str,
         return_response: bool = False,
-        retry: int = 0,
-        retry_delay: int = 0,
     ) -> list[dict[str, Any]] | None:
         """Post to hass rest api."""
 
         # -------------------------
+        @handle_retries(retries=5, retry_delay=10)
         async def async_post() -> list[dict[str, Any]] | None:
             async with session.post(url, headers=headers) as resp:
                 self._check_resp_status(resp.status)
@@ -96,7 +96,7 @@ class RestApi:
 
         # -------------------------
 
-        retry_count: int = retry if retry > 0 else 1
+        # retry_count: int = retry if retry > 0 else 1
 
         url = f"{'https' if secure else 'http'}://{host}:{port}/api/services/{domain}/{service}{'?return_response=true' if return_response else ''}"
 
@@ -106,30 +106,23 @@ class RestApi:
         }
         session: ClientSession = async_get_clientsession(hass, verify_ssl)
 
-        for loop_count in range(retry_count):
-            try:
-                service_resp = await async_post()
-                break
+        # for loop_count in range(retry_count):
+        # try:
+        return await async_post()
 
-            except (
-                # BadResponse,
-                EndpointMissing,
-                InvalidAuth,
-                # ApiProblem,
-                CannotConnect,
-            ) as err:
-                last_err = err
+        # except (
+        #     # BadResponse,
+        #     EndpointMissing,
+        #     InvalidAuth,
+        #     # ApiProblem,
+        #     CannotConnect,
+        # ) as err:
+        #     last_err = err
 
-            except Exception:  # noqa: BLE001
-                last_err = CannotConnect()
+        # except Exception:
+        #     last_err = CannotConnect()
 
-            # If this is the last retry, create an issue
-            if loop_count == (retry_count - 1):
-                raise last_err
-
-            await asyncio.sleep(retry_delay)
-
-        return service_resp
+        # return service_resp
 
     # ------------------------------------------------------
     def _check_resp_status(self, status: int) -> None:

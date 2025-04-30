@@ -152,20 +152,12 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
                 vol.Optional(CONF_MONITOR_STATE_CHANGED_TYPE): cv.string,
                 vol.Required(CONF_SAVE_OPTIONS): cv.boolean,
             },
-            self.async_service_update_main_options_dispatcher,
+            self.async_service_update_main_options,
         )
 
     # ------------------------------------------------------------------
-    async def async_service_update_main_options_dispatcher(
-        self, entity: MainAcitvityMonitorBinarySensor, service_data: ServiceCall
-    ) -> None:
-        """Update main options."""
-
-        await entity.async_service_update_main_options(service_data)
-
-    # ------------------------------------------------------------------
     async def async_service_update_main_options(
-        self, service_data: ServiceCall
+        self, entity: MainAcitvityMonitorBinarySensor, service_data: ServiceCall
     ) -> None:
         """Update main options."""
 
@@ -181,26 +173,26 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
                 "seconds": seconds,
             }
 
-        self.monitor_state_changed_type: str = service_data.data.get(
-            CONF_MONITOR_STATE_CHANGED_TYPE, self.monitor_state_changed_type
+        entity.monitor_state_changed_type = service_data.data.get(
+            CONF_MONITOR_STATE_CHANGED_TYPE, entity.monitor_state_changed_type
         )
 
-        self.duration_wait_update = service_data.data.get(
+        entity.duration_wait_update = service_data.data.get(
             CONF_DURATION_WAIT_UPDATE, timedelta()
         )
 
         if service_data.data.get(CONF_SAVE_OPTIONS, False):
-            tmp_entry_options: dict[str, Any] = self.entry.options.copy()
+            tmp_entry_options: dict[str, Any] = entity.entry.options.copy()
             tmp_entry_options[CONF_MONITOR_STATE_CHANGED_TYPE] = (
-                self.monitor_state_changed_type
+                entity.monitor_state_changed_type
             )
             tmp_entry_options[CONF_DURATION_WAIT_UPDATE] = timedelta_to_dict(
-                self.duration_wait_update
+                entity.duration_wait_update
             )
 
-            self.update_settings(tmp_entry_options)
+            entity.update_settings(tmp_entry_options)
 
-        await self.coordinator.async_refresh()
+        await entity.coordinator.async_refresh()
 
     # ------------------------------------------------------------------
     def update_settings(self, entry_options: dict[str, Any]) -> None:
@@ -391,8 +383,6 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
                     DOMAIN,
                     SERVICE_GET_REMOTE_ENTITIES,
                     True,
-                    5,
-                    10,
                 )
             )["remotes"]
 

@@ -58,22 +58,16 @@ class RemoteAcitvityMonitorMainOnBinarySensor(
             {
                 vol.Required(SERVICE_MAIN_ON_SWITCH): bool,
             },
-            self.async_main_on_entity_dispatcher,
+            self.async_main_on_entity,
         )
 
     # ------------------------------------------------------------------
-    async def async_main_on_entity_dispatcher(
+    async def async_main_on_entity(
         self, entity: RemoteAcitvityMonitorMainOnBinarySensor, service_data: ServiceCall
     ) -> None:
         """Host main on entity."""
-
-        await entity.async_main_on_entity(service_data)
-
-    # ------------------------------------------------------------------
-    async def async_main_on_entity(self, service_data: ServiceCall) -> None:
-        """Host main on entity."""
-        self.main_on = service_data.data.get(SERVICE_MAIN_ON_SWITCH, False)
-        self.async_write_ha_state()
+        entity.main_on = service_data.data.get(SERVICE_MAIN_ON_SWITCH, False)
+        entity.async_write_ha_state()
 
     # ------------------------------------------------------
     async def async_refresh(self) -> None:
