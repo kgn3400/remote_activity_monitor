@@ -20,7 +20,7 @@ Instead, it resulted in the custom integration Remote Activity Monitor, where ev
 
 ## Installation
 
-For installation instructions, until the Remote activity monitor is part of HACS, [see this guide](https://hacs.xyz/docs/faq/custom_repositories).
+For installation search for Remote activity monitor in the HACS and download.
 Or click
 [![My Home Assistant](https://img.shields.io/badge/Home%20Assistant-%2341BDF5.svg?style=flat&logo=home-assistant&label=Add%20to%20HACS)](https://my.home-assistant.io/redirect/hacs_repository/?owner=kgn3400&repository=remote_activity_monitor&category=integration)
 
