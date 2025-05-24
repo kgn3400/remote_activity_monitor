@@ -10,13 +10,12 @@
 # Remote activity monitor
 
 <br/>
-The Remote activity monitor allows you to monitor the status of a binary/switch sensor or a set of binary/switch sensors on a remote Home Assistant device.
-
-My use case was that I wanted to monitor an elderly family member and receive an alert if there had been no activity for a given period. A cheap and flexible solution was to install a Raspberry Pi with Home Assistant and some motion sensors.
+The Remote Activity Monitor lets you keep track of the status of one or more binary or switch sensors on a remote Home Assistant device. This is especially useful if you want to monitor activity in another location—such as a separate home or a family member’s residence.
+For example, I wanted to ensure the well-being of an elderly family member by receiving an alert if there was no activity detected for a certain period. A simple and cost-effective solution was to set up a Raspberry Pi with Home Assistant and a few motion sensors in their home.
 
 Additionally, the integration [Remote Home-Assistant](https://github.com/custom-components/remote_homeassistant), a script, and an automation were needed to achieve the desired functionality.
 
-Instead, it resulted in the custom integration Remote Activity Monitor, where everything is bundled into a user-friendly interface that is simple to use.
+This led to the creation of the custom integration, Remote Activity Monitor, which brings everything together in a single, user-friendly interface. Now, all the necessary features are bundled in one place, making setup and monitoring simple and straightforward for everyone.
 
 ## Installation
 
@@ -26,17 +25,17 @@ Or click
 
 ## Configuration
 
-Configuration is setup via UI in Home Assistant. To add one, go to [Settings > Devices & Services](https://my.home-assistant.io/redirect/integrations) and click the add button. Next choose the [Remote activity monitor](https://my.home-assistant.io/redirect/config_flow_start?domain=remote_activity_monitor) option.
+Configuration is done through the Home Assistant UI. To add a new entry, simply go to [Settings > Devices & Services](https://my.home-assistant.io/redirect/integrations) and click the add button. Next choose the [Remote activity monitor](https://my.home-assistant.io/redirect/config_flow_start?domain=remote_activity_monitor) option.
 
 Or click
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=remote_activity_monitor)
 
-Choose whether it is a remote activity monitor integration or a main activity monitor integration which should be created. A remote activity monitor must always be created before creating a main activity monitor.
+Select whether you want to create a “Remote Activity Monitor” or a “Main Activity Monitor” integration. Note that you must always set up a Remote Activity Monitor first before you can create a Main Activity Monitor. This sequence ensures proper communication between your monitoring devices.
 
 <img src="https://kgn3400.github.io/remote_activity_monitor/assets/config-menu.png" width="400" height="auto" alt="Config">
 <br>
 
-On the remote Home Assistant, add the remote activity monitor integration. And select which entities to track.
+On the remote Home Assistant instance, add the Remote Activity Monitor integration. Then, simply select the entities you want to monitor.
 
 To access the remote Home Assistant, you need a Long-Lived Access Token. Generate a Long-Lived Access Token by logging into the remote Home Assistant, click on the [user profile icon](https://my.home-assistant.io/redirect/profile) and click on the security tab, then click "Create Token" under "Long-Lived Access Tokens". Copy the token and use it when creating the main activity monitor.
 
