@@ -50,3 +50,7 @@ Enter the remote host name or ip address and insert the Long-Lived Access Token 
 Select the Remote activity monitor entity that you want to monitor on the remote host. Should there be any delay before marking the state as changed and the state to monitor.
 
 <img src="https://kgn3400.github.io/remote_activity_monitor/assets/config-main-2.png" width="400" height="auto" alt="Config">
+
+### Support
+
+If you like this integration or find it useful, please consider giving it a ⭐️ on GitHub 👍 Your support is greatly appreciated!
