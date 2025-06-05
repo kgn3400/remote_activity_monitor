@@ -396,7 +396,8 @@ class MainAcitvityMonitorBinarySensor(ComponentEntityMain, BinarySensorEntity):
             # LOGGER.error("Error connecting to restapi to get remote entities", err)
             last_err = str(err)
 
-        except Exception:  # noqa: BLE001
+        except Exception as err:  # noqa: BLE001
+            LOGGER.error("Error connecting to restapi to get remote entities", err)
             last_err = str(CannotConnect)  # "cannot_connect"
 
         if last_err != "":

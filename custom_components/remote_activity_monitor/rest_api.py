@@ -65,6 +65,23 @@ class EndpointMissing(exceptions.HomeAssistantError):
 class RestApi:
     """Home Assistant REST API."""
 
+    # -------------------------
+    # @handle_retries(retries=5, retry_delay=10)
+    # async def async_post(
+    #     self, session: ClientSession, url: str, headers: dict, return_response: bool
+    # ) -> list[dict[str, Any]] | None:
+    #     """Post to hass rest api."""
+    #     async with session.post(url, headers=headers) as resp:
+    #         self._check_resp_status(resp.status)
+
+    #         json = await resp.json()
+
+    #         if return_response and (
+    #             not isinstance(json, dict) or "service_response" not in json
+    #         ):
+    #             raise BadResponse(f"Bad response data: {json}")
+    #     return json["service_response"] if return_response else None
+
     # ------------------------------------------------------
     async def async_post_service(
         self,
@@ -83,6 +100,7 @@ class RestApi:
         # -------------------------
         @handle_retries(retries=5, retry_delay=10)
         async def async_post() -> list[dict[str, Any]] | None:
+            """Post to hass rest api."""
             async with session.post(url, headers=headers) as resp:
                 self._check_resp_status(resp.status)
 
@@ -96,8 +114,6 @@ class RestApi:
 
         # -------------------------
 
-        # retry_count: int = retry if retry > 0 else 1
-
         url = f"{'https' if secure else 'http'}://{host}:{port}/api/services/{domain}/{service}{'?return_response=true' if return_response else ''}"
 
         headers = {
@@ -106,23 +122,7 @@ class RestApi:
         }
         session: ClientSession = async_get_clientsession(hass, verify_ssl)
 
-        # for loop_count in range(retry_count):
-        # try:
         return await async_post()
-
-        # except (
-        #     # BadResponse,
-        #     EndpointMissing,
-        #     InvalidAuth,
-        #     # ApiProblem,
-        #     CannotConnect,
-        # ) as err:
-        #     last_err = err
-
-        # except Exception:
-        #     last_err = CannotConnect()
-
-        # return service_resp
 
     # ------------------------------------------------------
     def _check_resp_status(self, status: int) -> None:
