@@ -31,7 +31,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CommonConfigEntry) -> bo
 
     entry.runtime_data = CommonData(Shared())
 
-    entry.async_on_unload(entry.add_update_listener(update_listener))
+    entry.async_on_unload(entry.add_update_listener(config_update_listener))
 
     match entry.options[CONF_COMPONENT_TYPE]:
         case ComponentType.MAIN:
@@ -69,7 +69,7 @@ async def async_reload_entry(hass: HomeAssistant, entry: CommonConfigEntry) -> N
 
 
 # ------------------------------------------------------------------
-async def update_listener(
+async def config_update_listener(
     hass: HomeAssistant,
     config_entry: CommonConfigEntry,
 ) -> None:

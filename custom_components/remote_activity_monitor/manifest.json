@@ -10,9 +10,13 @@
   "homekit": {},
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/kgn3400/remote_activity_monitor/issues",
-  "requirements": [],
+  "requirements": [
+    "jsonpickle",
+    "aiofiles",
+    "orjson"
+  ],
   "ssdp": [],
-  "version": "1.0.23",
+  "version": "1.0.24",
   "zeroconf": [
     "_home-assistant._tcp.local."
   ]
